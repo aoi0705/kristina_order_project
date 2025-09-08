@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}サイトタイトル{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 任意：CSS を置くなら static を使う
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  -->
+</head>
+<body>
+  <header>
+    <h1><a href="{% url 'index' %}">Django デモ</a></h1>
+    <hr>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <hr>
+    <small>&copy; 2025 Sample</small>
+  </footer>
+</body>
+</html>

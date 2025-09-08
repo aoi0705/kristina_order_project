@@ -1,0 +1,338 @@
+{% load static %}
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>レポート発行</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f7f7f9; }
+    .card { border: none; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .table thead th { position: sticky; top:0; background:#f8f9fa; z-index:1; }
+    .spinner { padding: 32px; text-align: center; color: #666; }
+    .error { padding: 16px; color: #b00020; }
+    .toolbar .btn + .btn { margin-left: .5rem; }
+    .small-muted { font-size: .9rem; color: #6c757d; }
+    .clients-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .25rem .75rem; }
+    @media (min-width: 768px){ .clients-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+  <h1 class="h4 mb-3">レポート発行</h1>
+
+  <!-- フィルタ -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <form id="filterForm" class="row gy-3 gx-3 align-items-start">
+        <div class="col-12 col-md-8">
+          <label class="form-label mb-1">取引先（複数選択可）</label>
+          <div class="clients-grid" id="clientsGroup">
+            <!-- チェックボックス（値はそのままAPIへ渡ります） -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="NIPPONIKA TRADING社" id="c1">
+              <label class="form-check-label" for="c1">NIPPONIKA TRADING社</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="ROYAL COOSMETICS社" id="c2">
+              <label class="form-check-label" for="c2">ROYAL COOSMETICS社</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="USA" id="c3">
+              <label class="form-check-label" for="c3">USA</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="個人" id="c4">
+              <label class="form-check-label" for="c4">個人</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="ACES Beteiligunen UG社" id="c5">
+              <label class="form-check-label" for="c5">ACES Beteiligunen UG社</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="YAMATO" id="c6">
+              <label class="form-check-label" for="c6">YAMATO</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="JAPAN-SENKON" id="c7">
+              <label class="form-check-label" for="c7">JAPAN-SENKON</label>
+            </div>
+          </div>
+          <div class="small-muted mt-1">※ 選択された複数の取引先をまとめて条件として送信します。</div>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <label for="start_month">開始年月:</label>
+            <input type="month" id="start_month" name="start_month"
+                   value="{{ request.GET.start_month }}">
+          
+            <label for="end_month">終了年月:</label>
+            <input type="month" id="end_month" name="end_month"
+                   value="{{ request.GET.end_month }}">
+        </div>
+
+        <div class="col-6 col-md-2 d-grid">
+          <label class="form-label invisible">.</label>
+          <button id="showAllBtn" type="button" class="btn btn-primary">すべて表示</button>
+        </div>
+      </form>
+
+      <!-- クイックダウンロード（4レポートを即ダウンロード） -->
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-outline-secondary btn-sm" data-quick="csv">4レポート一括CSV</button>
+        <button class="btn btn-outline-secondary btn-sm" data-quick="pdf">4レポート一括PDF</button>
+        <span class="small-muted">※ ポップアップブロックを解除してください（タブで4つ開きます）。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- タブ -->
+  <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-sales" type="button" role="tab">売上表</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ar" type="button" role="tab">売掛金管理表</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ap" type="button" role="tab">買掛金管理表</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cash" type="button" role="tab">収支予定表</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- 売上表 -->
+    <div class="tab-pane fade show active" id="tab-sales" role="tabpanel">
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2 toolbar">
+            <div class="small-muted" id="summary-sales"></div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm" data-type="sales" data-action="csv">CSV</button>
+              <button class="btn btn-outline-secondary btn-sm" data-type="sales" data-action="pdf">PDF</button>
+              <button class="btn btn-primary btn-sm" data-type="sales" data-action="show">表示</button>
+            </div>
+          </div>
+          <div id="table-sales" class="table-responsive"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 売掛金 -->
+    <div class="tab-pane fade" id="tab-ar" role="tabpanel">
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2 toolbar">
+            <div class="small-muted" id="summary-ar"></div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm" data-type="ar" data-action="csv">CSV</button>
+              <button class="btn btn-outline-secondary btn-sm" data-type="ar" data-action="pdf">PDF</button>
+              <button class="btn btn-primary btn-sm" data-type="ar" data-action="show">表示</button>
+            </div>
+          </div>
+          <div id="table-ar" class="table-responsive"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 買掛金 -->
+    <div class="tab-pane fade" id="tab-ap" role="tabpanel">
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2 toolbar">
+            <div class="small-muted" id="summary-ap"></div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm" data-type="ap" data-action="csv">CSV</button>
+              <button class="btn btn-outline-secondary btn-sm" data-type="ap" data-action="pdf">PDF</button>
+              <button class="btn btn-primary btn-sm" data-type="ap" data-action="show">表示</button>
+            </div>
+          </div>
+          <div id="table-ap" class="table-responsive"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 収支予定 -->
+    <div class="tab-pane fade" id="tab-cash" role="tabpanel">
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2 toolbar">
+            <div class="small-muted" id="summary-cash"></div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm" data-type="cash" data-action="csv">CSV</button>
+              <button class="btn btn-outline-secondary btn-sm" data-type="cash" data-action="pdf">PDF</button>
+              <button class="btn btn-primary btn-sm" data-type="cash" data-action="show">表示</button>
+            </div>
+          </div>
+          <div id="table-cash" class="table-responsive"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    /**
+     * 期待するAPI（変更点：期間は start_month / end_month、client は複数可）
+     *   表示:  GET /api/reports/<type>?client=A&client=B&start_month=YYYY-MM&end_month=YYYY-MM
+     *   DL:    GET /api/reports/<type>/export?client=A&client=B&start_month=YYYY-MM&end_month=YYYY-MM&format=csv|pdf
+     * JSONの columns / rows / totals / summary は従来どおりを想定。
+     */
+    
+    const endpoints = {
+      sales:  "/api/reports/sales",
+      ar:     "/api/reports/ar",
+      ap:     "/api/reports/ap",
+      cash:   "/api/reports/cashflow",
+    };
+    const exportEndpoints = {
+      sales:  "/api/reports/sales/export",
+      ar:     "/api/reports/ar/export",
+      ap:     "/api/reports/ap/export",
+      cash:   "/api/reports/cashflow/export",
+    };
+    
+    function getSelectedClients() {
+      const boxes = document.querySelectorAll('#clientsGroup input[type="checkbox"]:checked');
+      return Array.from(boxes).map(b => b.value);
+    }
+    
+    function getRange() {
+      const smEl = document.getElementById('start_month');
+      const emEl = document.getElementById('end_month');
+      return { start: (smEl?.value || '').trim(), end: (emEl?.value || '').trim() };
+    }
+    
+    function ensureParams({clients, start, end}) {
+      if (!clients || clients.length === 0) { alert("取引先を1つ以上選択してください"); return false; }
+      if (!start || !end) { alert("開始年月と終了年月を入力してください"); return false; }
+      if (start > end) { alert("開始年月は終了年月以前にしてください"); return false; }
+      return true;
+    }
+    
+    function showSpinner(targetId) {
+      document.getElementById(targetId).innerHTML =
+        '<div class="spinner"><div class="spinner-border" role="status"></div><div>読み込み中...</div></div>';
+    }
+    
+    function showError(targetId, msg) {
+      document.getElementById(targetId).innerHTML = `<div class="error">エラー: ${msg}</div>`;
+    }
+    
+    function numberFormat(v) {
+      if (typeof v === 'number') return v.toLocaleString('ja-JP');
+      if (v === null || v === undefined) return '';
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toLocaleString('ja-JP') : String(v);
+    }
+    
+    function renderTable(targetId, columns, rows, totals) {
+      const el = document.getElementById(targetId);
+      if (!columns?.length) { el.innerHTML = '<div class="small-muted">データがありません。</div>'; return; }
+    
+      const thead = '<thead><tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+      const tbody = '<tbody>' + (rows || []).map(r => {
+        return '<tr>' + r.map(cell =>
+          `<td class="${typeof cell==='number' ? 'text-end' : ''}">${numberFormat(cell)}</td>`
+        ).join('') + '</tr>';
+      }).join('') + '</tbody>';
+    
+      let tfoot = '';
+      if (totals && Object.keys(totals).length) {
+        const lastCol = columns[columns.length - 1];
+        const totalVal = totals[lastCol] ?? '';
+        tfoot = `<tfoot><tr><th colspan="${columns.length - 1}" class="text-end">合計</th><th class="text-end">${numberFormat(totalVal)}</th></tr></tfoot>`;
+      }
+    
+      el.innerHTML = `<table class="table table-sm table-hover align-middle mb-0">${thead}${tbody}${tfoot}</table>`;
+    }
+    
+    async function fetchReport(type) {
+      const clients = getSelectedClients();
+      const { start, end } = getRange();
+      if (!ensureParams({clients, start, end})) return;
+    
+      const tableId = 'table-' + type;
+      const summaryId = 'summary-' + type;
+      showSpinner(tableId);
+    
+      const url = new URL(endpoints[type], window.location.origin);
+      clients.forEach(c => url.searchParams.append('client', c));
+      url.searchParams.set('start_month', start);
+      url.searchParams.set('end_month', end);
+    
+      try {
+        const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        const data = await res.json();
+    
+        renderTable(tableId, data.columns || [], data.rows || [], data.totals || null);
+        const clientLabel = clients.length === 1 ? clients[0] : `${clients.length}社選択`;
+        document.getElementById(summaryId).textContent =
+          data.summary || `${start} 〜 ${end} / ${clientLabel} の結果：${(data.rows || []).length}件`;
+      } catch (e) {
+        showError(tableId, e.message);
+        document.getElementById(summaryId).textContent = '';
+      }
+    }
+    
+    function exportReport(type, format) {
+      const clients = getSelectedClients();
+      const { start, end } = getRange();
+      if (!ensureParams({clients, start, end})) return;
+    
+      const url = new URL(exportEndpoints[type], window.location.origin);
+      clients.forEach(c => url.searchParams.append('client', c));
+      url.searchParams.set('start_month', start);
+      url.searchParams.set('end_month', end);
+      url.searchParams.set('format', format);
+      window.open(url.toString(), '_blank'); // ダウンロード
+    }
+    
+    function exportAll(format) {
+      ['sales', 'ar', 'ap', 'cash'].forEach(t => exportReport(t, format));
+    }
+    
+    // すべて表示
+    document.getElementById('showAllBtn').addEventListener('click', () => {
+      ['sales','ar','ap','cash'].forEach(fetchReport);
+    });
+    
+    // 各タブのボタン（イベント委譲）
+    document.body.addEventListener('click', (e) => {
+      const quick = e.target.closest('button[data-quick]');
+      if (quick) { exportAll(quick.dataset.quick); return; }
+    
+      const btn = e.target.closest('button[data-type][data-action]');
+      if (!btn) return;
+      const type = btn.dataset.type;
+      const action = btn.dataset.action;
+      if (action === 'show') fetchReport(type);
+      if (action === 'csv' || action === 'pdf') exportReport(type, action);
+    });
+    
+    // 初期値：開始・終了ともに当月にセット。相互制約も付与。
+    (function initMonthRange(){
+      const smEl = document.getElementById('start_month');
+      const emEl = document.getElementById('end_month');
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2,'0');
+      const ym = `${d.getFullYear()}-${mm}`;
+    
+      if (smEl && !smEl.value) smEl.value = ym;
+      if (emEl && !emEl.value) emEl.value = ym;
+    
+      if (smEl && emEl) {
+        // 相互 min/max
+        emEl.min = smEl.value || '';
+        smEl.max = emEl.value || '';
+    
+        smEl.addEventListener('change', () => {
+          if (emEl.value && smEl.value && smEl.value > emEl.value) emEl.value = smEl.value;
+          emEl.min = smEl.value || '';
+        });
+        emEl.addEventListener('change', () => {
+          if (smEl.value && emEl.value && emEl.value < smEl.value) smEl.value = emEl.value;
+          smEl.max = emEl.value || '';
+        });
+      }
+    })();
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

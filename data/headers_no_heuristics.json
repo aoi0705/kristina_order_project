@@ -1,0 +1,387 @@
+{
+  "SUNTREG":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row":1
+  },
+
+  "Rey Beauty":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "C'BON":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":7,
+    "Total_col_add" : 7
+  },
+
+  "COCOCHI　発注書":{
+    "first_header": 11,
+    "second_header": 0
+  },
+
+  "SUNSORIT":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "ESTLABO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "URESHINO":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "McCoy":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "FLOUVEIL":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+  
+  "CHANSON":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "HIMELABO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "Beauty Conexion":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "KYOTOMO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "COREIN":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "ELEGADOLL":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "ATMORE":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "MARY.P":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "ROSY DROP":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 8,
+    "Purchase_col": 9,
+    "Amount_col": 10,
+    "Total_row_add":8,
+    "Total_col_add" : 8
+  },
+
+  "LAPIDEM":{
+    "first_header": 5,
+    "second_header": 11,
+    "Qty_col": 8,
+    "Purchase_col": 9,
+    "Amount_col": 10,
+    "Total_row_add":8,
+    "Total_col_add" : 8
+  },
+
+  "AISHODO":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "DOSHISHA":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "ISTYLE":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 6,
+    "Purchase_col": 7,
+    "Amount_col": 8
+  },
+
+  "MEROS":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "RUHAKU":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "OLUPONO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "D.H.C":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "EMU":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "CHIKUHODO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "STARLAB":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "MAYURI":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "AFURA":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":7,
+    "Total_col_add" : 7
+  },
+
+  "COSMEPRO":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":8,
+    "Total_col_add" : 7
+  },
+
+  "PECLIA":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "HANAKO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "FAJ":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "LEJEU":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "Dr.Medion":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "Diaas":{
+    "first_header": 5,
+    "second_header": 10,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "Luxces":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "Evliss":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "Esthe Pro Labo":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "DIAMANTE":{
+    "first_header": 5,
+    "second_header": 9,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9,
+    "Total_row_add":9,
+    "Total_col_add" : 7
+  },
+
+  "OSATO":{
+    "first_header": 5,
+    "second_header": 0,
+    "Qty_col": 7,
+    "Purchase_col": 8,
+    "Amount_col": 9
+  },
+
+  "リレント通常注文":{
+    "first_header": 2,
+    "second_header": 0
+  },
+
+  "リレント無料提供":{
+    "first_header": 2,
+    "second_header": 0
+  }
+}

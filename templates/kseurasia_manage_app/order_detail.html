@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>注文詳細</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="container py-4">
+  <h1 class="h4 mb-3">注文詳細 (ID: {{ obj.id }})</h1>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h2 class="h6">基本情報</h2>
+        <ul class="mb-0">
+          <li>JAN: {{ obj.Jan_code }}</li>
+          <li>SKU: {{ obj.SKU_number }}</li>
+          <li>商品名: {{ obj.Product_name }}</li>
+          <li>ブランド: {{ obj.Brand_name }}</li>
+          <li>英名: {{ obj.English_name }}</li>
+          <li>ロシア名: {{ obj.Rassian_name }}</li>
+          <li>日本語名: {{ obj.Product_name }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h2 class="h6">数量・価格</h2>
+        <ul class="mb-0">
+          <li>数量(Order): {{ obj.Order }}</li>
+          <li>単価: {{ obj.Unit_price }}</li>
+          <li>金額: {{ obj.Amount }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h2 class="h6">パッケージ/サイズ</h2>
+        <ul class="mb-0">
+          <li>内容量: {{ obj.Contents }}</li>
+          <li>Volume: {{ obj.Volume }}</li>
+          <li>商品サイズ: {{ obj.Product_size }}</li>
+          <li>Case Q'ty: {{ obj.Case_qty }}</li>
+          <li>Case Volume: {{ obj.Case_volume }}</li>
+          <li>Case Weight: {{ obj.Case_weight }}</li>
+          <li>Unit N/W: {{ obj.Unit_nw }}</li>
+          <li>TTL N/W: {{ obj.TTL_nw }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h2 class="h6">その他</h2>
+        <ul class="mb-0">
+          <li>Lot: {{ obj.Lot }}</li>
+          <li>Order(原表記): {{ obj.Oeder }}</li>
+          <li>Ingredients: {{ obj.Ingredients }}</li>
+          <li>DS details: {{ obj.DS_details }}</li>
+          <li>DS brandname: {{ obj.DS_brandname }}</li>
+          <li>DS Manufacturer: {{ obj.DS_Manufacturer }}</li>
+          <li>バッチ: {{ obj.batch.id }} / {{ obj.batch.created_at|date:"Y-m-d H:i" }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    {% if from_batch_id %}
+      <a href="{% url 'batch_order_list' batch_id=from_batch_id %}" class="btn btn-secondary">このバッチの一覧へ戻る</a>
+    {% else %}
+      <a href="{% url 'order_list' %}" class="btn btn-secondary">一覧へ戻る</a>
+    {% endif %}
+  </div>
+</body>
+</html>
