@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.http import HttpResponse
-from .forms import OrderExcelUploadForm
+from .forms import OrderExcelUploadForm, ProductImportForm
 from django.contrib import messages
 
 from kseurasia_manage_app.models import *
@@ -30,6 +30,7 @@ from django.utils import timezone
 
 import re
 from collections import OrderedDict,defaultdict
+
 
 # Create your views here.
 def index(request):
@@ -142,7 +143,7 @@ HEADER_MAP: Dict[str, str] = {
     "SKU Number (RU)": "SKU_number",
 
     "Produt Name": "Product_name",
-    "ORDER": "Order",
+    "ORDER": "ORDER",
 
     "English Name (RU)": "English_name",
     "RASSIAN NAME (RU)": "Rassian_name",
@@ -175,6 +176,70 @@ HEADER_MAP: Dict[str, str] = {
     "Производель ДС": "DS_Manufacturer",
 }
 
+NIPPONIKATRADING_HEADER_MAP: Dict[str, str] = {
+    "HS CODE": "HS_CODE",
+    "Jan code": "Jan_code",
+    "Артикул": "Артикул",
+    "Brand name": "Brand_name",
+    "日本語名": "日本語名",
+    "Description of goods": "Description_of_goods",
+    "Наименование ДС англ": "Наименование_ДС_англ",
+    "Наименование ДС рус": "Наименование_ДС_рус",
+    "Contents": "Contents",
+    "LOT": "LOT",
+    "Case Q'ty": "Case_Qty",
+    "ORDER": "ORDER",
+    "Unit price": "Unit_price",
+    "Amount": "Amount",
+    "仕入値": "仕入値",
+    "仕入値合計": "仕入値合計",
+    "利益": "利益",
+    "利益率": "利益率",
+    "ケース容積": "ケース容積",
+    "ケース重量": "ケース重量",
+    "ケース数量": "ケース数量",
+    "合計容積": "合計容積",
+    "合計重量": "合計重量",
+    "商品サイズ": "商品サイズ",
+    "Unit N/W(kg)": "Unit_NW",
+    "Total N/W(kg)": "Total_NW",
+    "成分": "成分",
+    "Марка (бренд) ДС": "Марка_бренд_ДС",
+    "Производель ДС": "Производель_ДС",
+}
+
+YAMATO_TOYO_HEADER_MAP: Dict[str, str] = {
+    "Brand": "Brand",
+    "Order \nCode": "Order_Code",
+    "Item Name": "Item_Name",
+    "Quantity": "Quantity",
+    "Unit \nprice\nJPY": "Unit_price_JPY",
+    "Amount\nJPY": "Amount_JPY",
+    "販売価格": "販売価格",
+    "輸出額": "輸出額",
+    "利益": "利益",
+    "利益率": "利益率",
+    "pcs\n/ct": "pcs_ct",
+    "CTN": "CTN",
+}
+
+VENDOR_CHOICES = [
+    ("yamato_toyo", "YAMATO/TOYO TRADING社向け"),
+    ("royal_cosmetics", "ROYAL COSMETICS社向け"),
+    ("nipponikatrading", "NIPPONIKATRADING社向け"),
+]
+
+MODEL_MAP = {
+    "yamato_toyo": YAMATO_TOYO_ProductInfo,     # ← 実在モデル名に合わせてください
+    "royal_cosmetics": RY_ProductInfo,
+    "nipponikatrading": NIPPONIKATRADING_ProductInfo,
+}
+
+LABEL_MAP = dict(VENDOR_CHOICES)  # キー→ラベル
+
+def _resolve_vendor(request):
+    v = request.GET.get("vendor") or request.POST.get("vendor") or "nipponikatrading"
+    return v if v in MODEL_MAP else "nipponikatrading"
 
 # ====== Brand名→テンプレシート名のエイリアス（未解決はTODO） ======
 BRAND_TO_SHEET_ALIAS: Dict[str, str] = {
@@ -1219,3 +1284,296 @@ def reports_cashflow_export(request):
     content = b""
     ctype = "text/csv" if fmt == "csv" else "application/pdf"
     return _download_response(content, filename, ctype)
+
+#以下商品情報管理
+VENDOR_CONFIG = {
+    "yamato_toyo": {
+        "label": "YAMATO/TOYO TRADING社向け",
+        "model": YAMATO_TOYO_ProductInfo,  # ← 実在モデルに置き換え済み想定
+        "list_columns": [
+            {"field": "id",         "label": "ID",           "width": "100px", "mono": True, "link_to_detail": True},
+            {"field": "Jan_code",   "label": "Jan code",     "width": "180px", "mono": True},
+            {"field": "Brand_name", "label": "Brand name"},
+            {"field": "Description_of_goods", "label": "Description"},
+            {"field": "Contents",   "label": "Contents",     "width": "120px"},
+            {"field": "Unit_price", "label": "Unit price",   "width": "120px", "mono": True},
+            {"field": "updated_at", "label": "更新",          "width": "160px", "format": "datetime", "mono": True},
+        ],
+        "detail_columns": [
+            {"field": "HS_CODE", "label": "HS CODE", "mono": True},
+            {"field": "Jan_code","label": "Jan code","mono": True},
+            {"field": "Brand_name","label": "Brand name"},
+            {"field": "Description_of_goods","label": "Description of goods"},
+            {"field": "Contents","label": "Contents"},
+            {"field": "Unit_price","label": "Unit price","mono": True},
+            {"field": "Amount","label": "Amount","mono": True},
+            {"field": "updated_at","label": "更新","format": "datetime","mono": True},
+        ],
+    },
+    "royal_cosmetics": {
+        "label": "ROYAL COSMETICS社向け",
+        "model": RY_ProductInfo,
+        "list_columns": [
+            {"field": "id",         "label": "ID",           "width": "100px", "mono": True, "link_to_detail": True},
+            {"field": "Jan_code",   "label": "Jan code",     "width": "180px", "mono": True},
+            {"field": "Brand_name", "label": "Brand name"},
+            {"field": "日本語名",      "label": "日本語名"},
+            {"field": "Unit_price", "label": "Unit price",   "width": "120px", "mono": True},
+            {"field": "Amount",     "label": "Amount",       "width": "120px", "mono": True},
+            {"field": "updated_at", "label": "更新",          "width": "160px", "format": "datetime", "mono": True},
+        ],
+        "detail_columns": [
+            {"field": "Jan_code","label": "Jan code","mono": True},
+            {"field": "Brand_name","label": "Brand name"},
+            {"field": "日本語名","label": "日本語名"},
+            {"field": "Description_of_goods","label": "Description of goods"},
+            {"field": "Contents","label": "Contents"},
+            {"field": "Unit_price","label": "Unit price","mono": True},
+            {"field": "Amount","label": "Amount","mono": True},
+            {"field": "成分","label": "成分","multiline": True},
+            {"field": "updated_at","label": "更新","format": "datetime","mono": True},
+        ],
+    },
+    "nipponikatrading": {
+        "label": "NIPPONIKATRADING社向け",
+        "model": NIPPONIKATRADING_ProductInfo,
+        "list_columns": [
+            {"field": "id",         "label": "ID",           "width": "100px", "mono": True, "link_to_detail": True},
+            {"field": "Jan_code",   "label": "Jan code",     "width": "180px", "mono": True},
+            {"field": "Brand_name", "label": "Brand name"},
+            {"field": "日本語名",      "label": "日本語名"},
+            {"field": "Description_of_goods","label": "Description of goods"},
+            {"field": "Contents",   "label": "Contents",     "width": "120px"},
+            {"field": "Unit_price", "label": "Unit price",   "width": "120px", "mono": True},
+            {"field": "Amount",     "label": "Amount",       "width": "120px", "mono": True},
+            {"field": "updated_at", "label": "更新",          "width": "160px", "format": "datetime", "mono": True},
+        ],
+        "detail_columns": [
+            {"field": "HS_CODE","label": "HS CODE","mono": True},
+            {"field": "Jan_code","label": "Jan code","mono": True},
+            {"field": "Артикул","label": "Артикул"},
+            {"field": "Brand_name","label": "Brand name"},
+            {"field": "日本語名","label": "日本語名"},
+            {"field": "Description_of_goods","label": "Description of goods"},
+            {"field": "Наименование_ДС_англ","label": "Наименование ДС англ"},
+            {"field": "Наименование_ДС_рус","label": "Наименование ДС рус"},
+            {"field": "Contents","label": "Contents"},
+            {"field": "LOT","label": "LOT"},
+            {"field": "Case_Qty","label": "Case Q'ty"},
+            {"field": "ORDER","label": "ORDER","mono": True},
+            {"field": "Unit_price","label": "Unit price","mono": True},
+            {"field": "Amount","label": "Amount","mono": True},
+            {"field": "仕入値段","label": "仕入値段","mono": True},
+            {"field": "仕入値合計","label": "仕入値合計","mono": True},
+            {"field": "利益","label": "利益","mono": True},
+            {"field": "利益率","label": "利益率","mono": True},
+            {"field": "合計重量","label": "合計重量","mono": True},
+            {"field": "商品サイズ","label": "商品サイズ"},
+            {"field": "Unit_NW","label": "Unit N/W(kg)","mono": True},
+            {"field": "Total_NW","label": "Total N/W(kg)","mono": True},
+            {"field": "成分","label": "成分","multiline": True},
+            {"field": "Марка_бренд_ДС","label": "Марка (бренд) ДС"},
+            {"field": "Производель_ДС","label": "Производель ДС"},
+            {"field": "created_at","label": "作成","format": "datetime","mono": True},
+            {"field": "updated_at","label": "更新","format": "datetime","mono": True},
+        ],
+    },
+}
+
+VENDOR_CHOICES = [(k, v["label"]) for k, v in VENDOR_CONFIG.items()]
+LABEL_MAP = {k: v["label"] for k, v in VENDOR_CONFIG.items()}
+
+def _resolve_vendor(request):
+    v = request.GET.get("vendor") or request.POST.get("vendor") or "nipponikatrading"
+    return v if v in VENDOR_CONFIG else "nipponikatrading"
+
+def product_import(request):
+    # GET はフォーム表示のみ
+    if request.method == "GET":
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+
+    # POST
+    form = ProductImportForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, "ファイルを選択してください。")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": form})
+
+    f = form.cleaned_data["file"]
+    vendor = form.cleaned_data["vendor"]
+
+    # ワークブック読み込み
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(f.read()), data_only=True)
+    except Exception as e:
+        messages.error(request, f"Excelの読み込みに失敗しました: {e}")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+
+    if vendor == "NIPPONIKATRADING社向け":
+        sheet_name = "ORDER SHEET"
+        header_row = 5
+    elif vendor == "ROYAL COSMETICS社向け":
+        sheet_name = "ORDER SHEET"
+        header_row = 3
+    elif vendor == "YAMATO/TOYO TRADING社向け":
+        sheet_name = "20250804_更新"
+        header_row = 20
+
+    # 固定シート取得
+    if sheet_name not in wb.sheetnames:
+        messages.error(request, f"シート '{sheet_name}' が見つかりません。存在: {', '.join(wb.sheetnames)}")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+    ws = wb[sheet_name]
+
+    # --- ヘッダー正規化（ここが重要） ---
+    def _norm_header(s: str) -> str:
+        s = (s or "").strip()
+        s = s.replace("\u00A0", " ").replace("\u3000", " ")  # NBSP/全角空白
+        s = s.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')  # スマートクォート
+        while "  " in s:
+            s = s.replace("  ", " ")
+        return s
+
+    raw_headers = ["" if c.value is None else str(c.value).strip() for c in ws[header_row]]
+    headers = [_norm_header(h) for h in raw_headers]
+    valid_idx = [i for i, h in enumerate(headers) if h]
+
+    # デバッグ: 実ヘッダー表示
+    messages.info(request, f"[HEADER] {headers[:12]}{' …' if len(headers) > 12 else ''}")
+
+    # モデルに実在するフィールド名セット
+    if vendor == "NIPPONIKATRADING社向け":
+        model_fields = {
+            f.name for f in NIPPONIKATRADING_ProductInfo._meta.get_fields()
+            if getattr(f, "concrete", False) and not getattr(f, "many_to_many", False) and not getattr(f, "auto_created", False)
+        }
+    elif vendor == "ROYAL COSMETICS社向け":
+        model_fields = {
+            f.name for f in RY_ProductInfo._meta.get_fields()
+            if getattr(f, "concrete", False) and not getattr(f, "many_to_many", False) and not getattr(f, "auto_created", False)
+        }
+    elif vendor == "YAMATO/TOYO TRADING社向け":
+        model_fields = {
+            f.name for f in YAMATO_TOYO_ProductInfo._meta.get_fields()
+            if getattr(f, "concrete", False) and not getattr(f, "many_to_many", False) and not getattr(f, "auto_created", False)
+        }
+
+    # シートに実在するヘッダーだけを対象にした有効マップ
+    sheet_header_set = set(headers)
+    if vendor == "NIPPONIKATRADING社向け":
+        effective_map = {
+            _norm_header(k): v
+            for k, v in NIPPONIKATRADING_HEADER_MAP.items()
+            if v and _norm_header(k) in sheet_header_set and v in model_fields
+        }
+    elif vendor == "ROYAL COSMETICS社向け":
+        effective_map = {
+            _norm_header(k): v
+            for k, v in HEADER_MAP.items()
+            if v and _norm_header(k) in sheet_header_set and v in model_fields
+        }
+    elif vendor == "YAMATO/TOYO TRADING社向け":
+        effective_map = {
+            _norm_header(k): v
+            for k, v in YAMATO_TOYO_HEADER_MAP.items()
+            if v and _norm_header(k) in sheet_header_set and v in model_fields
+        }
+
+    # ずれの可視化
+    if vendor == "NIPPONIKATRADING社向け":
+        missing_in_sheet = [k for k in NIPPONIKATRADING_HEADER_MAP.keys() if _norm_header(k) not in sheet_header_set]
+        missing_in_model = [v for v in NIPPONIKATRADING_HEADER_MAP.values() if v and v not in model_fields]
+    elif vendor == "ROYAL COSMETICS社向け":
+        missing_in_sheet = [k for k in HEADER_MAP.keys() if _norm_header(k) not in sheet_header_set]
+        missing_in_model = [v for v in HEADER_MAP.values() if v and v not in model_fields]
+    elif vendor == "YAMATO/TOYO TRADING社向け":
+        missing_in_sheet = [k for k in YAMATO_TOYO_HEADER_MAP.keys() if _norm_header(k) not in sheet_header_set]
+        missing_in_model = [v for v in YAMATO_TOYO_HEADER_MAP.values() if v and v not in model_fields]
+
+    if missing_in_sheet:
+        messages.warning(request, f"[WARN] Excelに無いヘッダー: {missing_in_sheet[:8]}{' …' if len(missing_in_sheet)>8 else ''}")
+    if missing_in_model:
+        messages.error(request, f"[ERROR] モデルに無いフィールド: {missing_in_model}")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+
+    # --- 行処理（空レコード抑止） ---
+    objects = []
+    empty_row_skipped = 0
+    for r in range(header_row + 1, ws.max_row + 1):
+        vals = ["" if c.value is None else str(c.value).strip() for c in ws[r]]
+        if not any(vals):  # 完全空行
+            continue
+
+        # Excel行辞書（正規化ヘッダー → 値）
+        row_dict = {headers[i]: (vals[i] if i < len(vals) else "") for i in valid_idx}
+
+        # モデル用にキー変換（値が空のものは入れない）
+        data = {}
+        non_empty = 0
+        for src, dest in effective_map.items():
+            v = row_dict.get(src, "")
+            if v == "":
+                continue
+            data[dest] = v
+            non_empty += 1
+
+        if non_empty == 0:  # ← ここで空レコードを明示的に弾く
+            empty_row_skipped += 1
+            continue
+        if vendor == "NIPPONIKATRADING社向け":
+            objects.append(NIPPONIKATRADING_ProductInfo(**data))
+        elif vendor == "ROYAL COSMETICS社向け":
+            objects.append(RY_ProductInfo(**data))
+        elif vendor == "YAMATO/TOYO TRADING社向け":
+            objects.append(YAMATO_TOYO_ProductInfo(**data))
+
+    if not objects:
+        messages.warning(request, "取り込める行がありませんでした。")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+
+    # 一括削除 → 一括登録（トランザクションで一気に）
+    try:
+        with transaction.atomic():
+            if vendor == "NIPPONIKATRADING社向け":
+                deleted, _ = NIPPONIKATRADING_ProductInfo.objects.all().delete()
+                NIPPONIKATRADING_ProductInfo.objects.bulk_create(objects, batch_size=500)
+            elif vendor == "ROYAL COSMETICS社向け":
+                deleted, _ = RY_ProductInfo.objects.all().delete()
+                RY_ProductInfo.objects.bulk_create(objects, batch_size=500)
+            elif vendor == "YAMATO/TOYO TRADING社向け":
+                deleted, _ = YAMATO_TOYO_ProductInfo.objects.all().delete()
+                YAMATO_TOYO_ProductInfo.objects.bulk_create(objects, batch_size=500)
+    except Exception as e:
+        messages.error(request, f"登録中にエラーが発生しました: {e}")
+        return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
+
+    messages.success(request, f"取り込み完了: 旧データ {deleted} 件削除、新規 {len(objects)} 件登録しました。")
+    return redirect("product_list")
+
+def product_list(request):
+    vendor = _resolve_vendor(request)
+    cfg = VENDOR_CONFIG[vendor]
+    Model = cfg["model"]
+
+    qs = Model.objects.all().order_by("-updated_at", "-id")
+    page = request.GET.get("page", 1)
+    page_obj = Paginator(qs, 50).get_page(page)
+
+    return render(request, "kseurasia_manage_app/product_list.html", {
+        "page_obj": page_obj,
+        "vendor": vendor,
+        "vendor_label": cfg["label"],
+        "vendor_choices": VENDOR_CHOICES,
+        "list_columns": cfg["list_columns"],
+    })
+
+def product_detail(request, pk: int):
+    vendor = _resolve_vendor(request)
+    cfg = VENDOR_CONFIG[vendor]
+    Model = cfg["model"]
+    obj = get_object_or_404(Model, pk=pk)
+    return render(request, "kseurasia_manage_app/product_detail.html", {
+        "obj": obj,
+        "vendor": vendor,
+        "vendor_label": cfg["label"],
+        "detail_columns": cfg["detail_columns"],
+    })

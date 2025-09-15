@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>商品情報取り込み</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap（CDN） -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background:#f7f7f9">
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'index' %}">KS Eurasia</a>
+      <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-light" href="{% url 'product_list' %}">商品一覧</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4" style="max-width:900px">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">商品情報取り込み</h5>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_list' %}">一覧へ</a>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="vstack gap-3" action="{% url 'product_import' %}">
+          {% csrf_token %}
+          <div>
+            <label for="file" class="form-label">商品情報ブック（.xlsx）</label>
+            <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+          </div>
+          <div>
+            <label for="vendor" class="form-label">取り込み先</label>
+            <select id="vendor" name="vendor" class="form-select" required>
+              <option value="" selected disabled>選択してください</option>
+              <option value="YAMATO/TOYO TRADING社向け">YAMATO/TOYO TRADING社向け</option>
+              <option value="ROYAL COSMETICS社向け">ROYAL COSMETICS社向け</option>
+              <option value="NIPPONIKATRADING社向け">NIPPONIKATRADING社向け</option>
+            </select>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">取り込む</button>
+            <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">キャンセル</a>
+          </div>
+        </form>
+        {% if messages %}
+          <div class="mt-3">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="card-footer text-muted small">
+        ヘッダー例：<code>Jan code</code>, <code>Brand name</code>, <code>Description of goods</code>, <code>Contents</code>, <code>成分</code>, <code>HS CODE</code>, <code>INV No.</code>, <code>アロエ由来原料</code>, <code>スクワラン由来原料</code>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -80,9 +80,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ks_eurasia',
         'USER': 'root',
-        'PASSWORD': '@oiAoi0705',
+        'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "use_unicode": True,
+            "init_command": "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+        },
     }
 }
 

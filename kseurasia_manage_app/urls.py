@@ -27,4 +27,9 @@ urlpatterns = [
     path("api/reports/ar/export",       views.reports_ar_export,       name="reports_ar_export"),
     path("api/reports/ap/export",       views.reports_ap_export,       name="reports_ap_export"),
     path("api/reports/cashflow/export", views.reports_cashflow_export, name="reports_cashflow_export"),
+
+    #以下商品情報管理
+    path("products/import/", views.product_import, name="product_import"),
+    path("products/", views.product_list, name="product_list"),
+    path("products/<int:pk>/", views.product_detail, name="product_detail"),
 ]

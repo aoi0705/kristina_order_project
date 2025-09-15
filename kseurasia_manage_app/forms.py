@@ -41,3 +41,12 @@ class OrderExcelUploadForm(forms.Form):
     #     required=False,
     #     label="取引先",
     # )
+VENDOR_CHOICES = [
+    ("YAMATO/TOYO TRADING社向け", "YAMATO/TOYO TRADING社向け"),
+    ("ROYAL COSMETICS社向け", "ROYAL COSMETICS社向け"),
+    ("NIPPONIKATRADING社向け", "NIPPONIKATRADING社向け"),
+]
+
+class ProductImportForm(forms.Form):
+    file = forms.FileField(label="商品情報ブック（.xlsx）")
+    vendor = forms.ChoiceField(choices=VENDOR_CHOICES, required=True)
