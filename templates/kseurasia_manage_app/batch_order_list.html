@@ -1,90 +1,107 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>バッチ内オーダー一覧</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+{% extends "kseurasia_manage_app/base_dashboard.html" %}
+
+{% block title %}バッチ #{{ batch.id }} のオーダー | KS Eurasia{% endblock %}
+{% block header %}バッチ #{{ batch.id }} のオーダー一覧{% endblock %}
+
+{% block content %}
   <style>
-    body { background: #f7f7f9; }
-    .card { border: none; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    .table thead th { position: sticky; top:0; background:#f8f9fa; z-index:1; white-space:nowrap; }
-    .rowlink { cursor: pointer; }
+    .table-wrap { overflow:auto; }
+    table.orders { width:100%; border-collapse:collapse; background:#fff; }
+    table.orders th, table.orders td {
+      text-align:left; padding:10px 12px; border-bottom:1px solid #e5e7eb; white-space:nowrap;
+    }
+    table.orders thead th {
+      position: sticky; top: 0; z-index: 1; background:#fafcff; font-weight:600; color:#0c4a6e;
+    }
+    .rowlink { cursor:pointer; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .required-row > td { background:#FFF3E0; }
   </style>
-</head>
-<body>
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h5 mb-0">バッチ #{{ batch.id }} のオーダー（{{ total_count }}件）</h1>
-    <div class="text-muted small">
-      取込: {{ batch.created_at|date:"Y-m-d H:i" }} /
-      ファイル: {{ batch.source_filename|default:"(no filename)" }}
+
+  <!-- ヘッダー情報＋検索 -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div style="font-weight:700;">バッチ #{{ batch.id }} のオーダー（{{ total_count }}件）</div>
+        <div class="muted" style="font-size:12px;">
+          取込: {{ batch.created_at|date:"Y-m-d H:i" }} ／ ファイル: {{ batch.source_filename|default:"(no filename)" }} ／ バイヤー: {{ batch.buyers|default:"-" }}
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <a class="btn" href="{% url 'import_batch_list' %}">← バッチ一覧へ</a>
+      </div>
     </div>
-  </div>
-
-  <div class="mb-3 d-flex gap-2">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'import_batch_list' %}">← バッチ一覧へ</a>
-    <form method="get" class="d-flex gap-2 ms-auto" role="search">
-      <input type="text" class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="JAN/商品名/ブランド/SKU を検索" />
-      <button class="btn btn-primary btn-sm" type="submit">検索</button>
-    </form>
-  </div>
-
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-sm table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>商品名</th>
-            <th>ブランド</th>
-            <th>JAN</th>
-            <th>SKU</th>
-            <th>数量</th>
-            <th>金額</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for it in page_obj.object_list %}
-          <tr class="rowlink" onclick="location.href='{% url 'batch_order_detail' batch_id=batch.id pk=it.id %}'">
-            <td class="text-nowrap">{{ it.id }}</td>
-            <td>{{ it.Product_name }}</td>
-            <td>{{ it.Brand_name }}</td>
-            <td>{{ it.Jan_code }}</td>
-            <td>{{ it.SKU_number }}</td>
-            <td class="text-end">{{ it.Order }}</td>
-            <td class="text-end">{{ it.Amount }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="text-center text-muted py-4">このバッチにはオーダーがありません</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="card-body">
+      <form method="get" class="row" action="{% url 'batch_order_list' batch_id=batch.id %}">
+        <div class="col" style="min-width:260px; flex:1;">
+          <label class="muted" for="q">検索（JAN / 商品名 / ブランド / SKU）</label>
+          <div style="display:flex; gap:8px;">
+            <input id="q" name="q" type="text" value="{{ q|default:'' }}"
+                   style="width:100%; height:40px; border:1px solid #e5e7eb; border-radius:10px; padding:8px 10px; background:#fff;">
+            <button class="btn btn-primary" type="submit">検索</button>
+          </div>
+        </div>
+      </form>
     </div>
-  </div>
+  </section>
 
-  <nav class="mt-3">
-    <ul class="pagination pagination-sm mb-0">
-      {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page=1{% if q %}&q={{ q }}{% endif %}">«</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">‹</a></li>
-      {% else %}
-        <li class="page-item disabled"><span class="page-link">«</span></li>
-        <li class="page-item disabled"><span class="page-link">‹</span></li>
-      {% endif %}
+  <!-- 一覧 -->
+  <section class="card" style="margin-top:16px;">
+    <div class="card-body">
+      <div class="table-wrap" style="max-height:70vh;">
+        <table class="orders">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>商品名</th>
+              <th style="width:160px;">ブランド</th>
+              <th style="width:140px;">JAN</th>
+              <th style="width:140px;">SKU/コード</th>
+              <th style="width:100px; text-align:right;">数量</th>
+              <th style="width:140px; text-align:right;">金額</th>
+              <th style="width:140px; text-align:right;">商品登録</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in page_obj.object_list %}
+              {# バイヤーごとに異なるカラム名を firstof で吸収（バックエンドは変更しません） #}
+              {% firstof it.Product_name it.Item_Name it.日本語名 it.Description_of_goods as name %}
+              {% firstof it.Brand_name it.Brand as brand %}
+              {% firstof it.Jan_code it.JAN_code as jan %}
+              {% firstof it.SKU_number it.Order_Code as sku %}
+              {% firstof it.Order it.Quantity as qty %}
+              {% firstof it.Amount it.総販売価格 it.Amount_JPY it.仕入値合計 as amount %}
 
-      <li class="page-item active"><span class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span></li>
+              <tr class="rowlink {% if it.RequiredProduct_flg %}required-row{% endif %}"
+              onclick="location.href='{% url 'batch_order_detail' batch_id=batch.id pk=it.id %}'">
+                <td><a class="text-decoration-none" href="{% url 'batch_order_detail' batch_id=batch.id pk=it.id %}">#{{ it.id }}</a></td>
+                <td>{{ name|default:"(no name)" }}</td>
+                <td>{{ brand|default:"" }}</td>
+                <td class="mono">{{ jan|default:"" }}</td>
+                <td class="mono">{{ sku|default:"" }}</td>
+                <td style="text-align:right;">{{ qty|default:"" }}</td>
+                <td style="text-align:right;">{{ amount|default:"" }}</td>
+                <td style="text-align:right;">{{ it.RequiredProduct_flg|yesno:"必要,不要,不要" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="muted" style="padding:16px 12px;">このバッチにはオーダーがありません</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-      {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">›</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}">»</a></li>
-      {% else %}
-        <li class="page-item disabled"><span class="page-link">›</span></li>
-        <li class="page-item disabled"><span class="page-link">»</span></li>
-      {% endif %}
-    </ul>
-  </nav>
-</div>
-</body>
-</html>
+      <!-- ページネーション -->
+      <div style="display:flex; gap:6px; align-items:center; justify-content:center; margin-top:12px;">
+        {% if page_obj.has_previous %}
+          <a class="btn" href="?page=1{% if q %}&q={{ q }}{% endif %}">« 最初</a>
+          <a class="btn" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">‹ 前</a>
+        {% endif %}
+        <span class="btn" style="background:#eef6ff; border-color:#cfe8ff;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="btn" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">次 ›</a>
+          <a class="btn" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}">最後 »</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

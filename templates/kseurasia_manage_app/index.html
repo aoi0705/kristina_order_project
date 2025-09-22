@@ -1,129 +1,82 @@
+{% extends "kseurasia_manage_app/base_dashboard.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>Excel一括取り込み – OrderContent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <style>
-    body { background:#f7f7f9; }
-    .card { border:none; box-shadow:0 8px 24px rgba(0,0,0,.08); }
-    .header { background:linear-gradient(135deg,#4f46e5,#06b6d4); color:#fff; padding:2rem 0; margin-bottom:2rem; }
-    .file-name { font-size:.95rem; color:#555; }
-  </style>
-</head>
-<body>
-  <header class="header">
-    <div class="container">
-      <h1 class="h4 mb-1">Excel一括取り込み</h1>
-      <p class="mb-0">ボタンを押してExcel(.xlsx)を選ぶと自動で送信します。</p>
-    </div>
-  </header>
 
-  <main class="container" style="max-width: 820px;">
-    {% if messages %}
-      <div class="mb-3">
-        {% for m in messages %}
-          <div class="alert alert-{{ m.tags|default:'info' }} mb-2">{{ m }}</div>
-        {% endfor %}
+{% block title %}トップ | KS Eurasia{% endblock %}
+{% block header %}トップ（オーダーデータ取り込み）{% endblock %}
+
+{% block content %}
+  <div class="grid" style="grid-template-columns: 1.4fr .8fr;">
+    <!-- 取り込みカード -->
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div style="font-weight:700;">Excel取込</div>
+          <div class="muted" style="font-size:12px;">対応：.xlsx / .xlsm（最大 30MB 程度）</div>
+        </div>
       </div>
-    {% endif %}
+      <div class="card-body">
+        <form method="post" action="/orders/import/" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col">
+              <label for="file">ファイル</label>
+              <input id="file" name="file" type="file" accept=".xlsx,.xlsm" required>
+              <div class="hint">YAMATO/ROYAL/NIPPONIKA は自動判定します</div>
+            </div>
+            <div class="col">
+              <label for="sheet_name">シート名（任意）</label>
+              <input id="sheet_name" name="sheet_name" type="text" placeholder="未指定時は先頭シート">
+            </div>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:10px;">
+            <button class="btn btn-primary" type="submit">
+              アップロードして取り込み
+            </button>
+            <a class="btn" href="/imports/">インポート記録を見る</a>
+          </div>
+        </form>
+      </div>
+    </section>
 
-    <div class="card p-4">
-      <!-- 重要: method と enctype -->
-      <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'import_orders' %}">
-        {% csrf_token %}
-
-        <!-- 実際の file input は非表示にしてJSから開く -->
-        <input
-          type="file"
-          id="file-input"
-          name="file"
-          accept=".xlsx"
-          class="d-none"
-        />
-
-        <!-- シート名（任意） -->
-        <div class="mb-3">
-          <label for="sheet-name" class="form-label">シート名（任意）</label>
-          <input
-            type="text"
-            id="sheet-name"
-            name="sheet_name"
-            class="form-control"
-            placeholder="未指定なら先頭シート"
-          />
-          <div class="form-text">例: ORDER / Sheet1 など。空なら先頭シートを読み込みます。</div>
+    <!-- ショートカット -->
+    <aside class="card">
+      <div class="card-header">
+        <div style="font-weight:700;">クイックアクセス</div>
+      </div>
+      <div class="card-body">
+        <div class="grid" style="grid-template-columns: 1fr; gap:10px;">
+          <a class="btn" href="/reports/">
+            レポート発行（売上表・AR/AP・CF 一括ZIP）
+          </a>
+          <a class="btn" href="/products/import/">
+            商品登録（インポート/更新）
+          </a>
+          <a class="btn" href="/orders/">
+            登録オーダー一覧
+          </a>
+          <a class="btn" href="/imports/">
+            インポート記録一覧
+          </a>
         </div>
-
-        <!-- <div class="col-12 col-md-3">
-          <label class="form-label" for="{{ form.destination.id_for_label }}">行先</label>
-          {{ form.destination}}
+        <div class="hint" style="margin-top:10px;">
+          必要に応じて左のサイドバーからも移動できます。
         </div>
-        <div class="col-12 col-md-5">
-          <label class="form-label" for="{{ form.client.id_for_label }}">取引先</label>
-          {{ form.client }}
-        </div>
-        <div class="col-6 col-md-2 d-grid"> -->
-
-        <!-- 見た目のボタン -->
-        <div class="mb-2 d-flex gap-2">
-          <button type="button" id="choose-btn" class="btn btn-primary">
-            アップロードして取り込み
-          </button>
-          <button type="submit" id="manual-submit" class="btn btn-outline-secondary" disabled>
-            送信
-          </button>
-          <a href="{% url 'import_batch_list' %}" class="btn btn-link">一覧を見る</a>
-          <a href="{% url 'report_console' %}" class="btn btn-link">売上表発行</a>
-          <a href="{% url 'product_import' %}" class="btn btn-link">商品情報インポート</a>
-        </div>
-
-        <!-- 選択されたファイル名の表示 -->
-        <div class="file-name" id="file-name"></div>
-      </form>
-    </div>
-  </main>
+      </div>
+    </aside>
+  </div>
 
   <script>
+    // 取り込みフォーム送信時に共通オーバーレイを表示
     (function(){
-      const chooseBtn   = document.getElementById('choose-btn');
-      const manualBtn   = document.getElementById('manual-submit');
-      const fileInput   = document.getElementById('file-input');
-      const fileNameLbl = document.getElementById('file-name');
-      const form        = document.getElementById('upload-form');
-
-      // 1) ボタン押下でファイルダイアログを開く
-      chooseBtn.addEventListener('click', function(){
-        fileInput.click();
-      });
-
-      // 2) ファイルが選ばれたらファイル名表示＆自動送信（ここで送る）
-      fileInput.addEventListener('change', function(){
-        if (fileInput.files && fileInput.files.length > 0) {
-          const f = fileInput.files[0];
-          fileNameLbl.textContent = '選択されたファイル: ' + f.name;
-          manualBtn.disabled = false; // 手動送信ボタンも有効化
-          //form.submit();              // ★ 自動送信
-        } else {
-          fileNameLbl.textContent = '';
-          manualBtn.disabled = true;
-        }
-      });
-
-      // 3) もし自動送信にしたくない場合のための手動送信
-      manualBtn.addEventListener('click', function(){
-        if (!fileInput.files || fileInput.files.length === 0) {
-          alert('先にファイルを選択してください。');
-          return;
-        }
-        form.submit();
+      const form = document.querySelector('form[action="/orders/import/"]');
+      if(!form) return;
+      const submitBtn = form.querySelector('button[type="submit"]');
+  
+      form.addEventListener('submit', function(){
+        if (submitBtn) submitBtn.disabled = true;
+        if (window.AppOverlay) window.AppOverlay.show("ファイルを取り込み中です…");
+        // このまま通常のフォームPOST遷移。応答が返るまでオーバーレイが出続けます。
       });
     })();
   </script>
-</body>
-</html>
+{% endblock %}

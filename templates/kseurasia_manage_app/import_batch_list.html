@@ -1,167 +1,164 @@
+{% extends "kseurasia_manage_app/base_dashboard.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <title>インポート記録一覧</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root { --bg:#f7f7fb; --fg:#222; --muted:#666; --card:#fff; --primary:#2563eb; --danger:#b91c1c; --border:#e5e7eb; }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", Arial, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; background: var(--bg); color: var(--fg);}
-    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px;}
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
-    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-    h1 { margin: 0; font-size: 18px;}
-    .filters { display:flex; gap:12px; align-items:end; flex-wrap:wrap;}
-    label { font-size: 12px; color: var(--muted); display:block; margin-bottom:6px;}
-    input[type="text"], input[type="date"] { height: 36px; padding: 0 10px; border:1px solid var(--border); border-radius:8px; background:#fff; }
-    button, .btn { height: 36px; padding: 0 14px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }
-    .btn-primary { background: var(--primary); color:#fff; border-color: transparent; }
-    .btn-danger { background: var(--danger); color:#fff; border-color: transparent; }
-    .btn:disabled { opacity:.5; cursor:not-allowed;}
-    .table-wrap { overflow:auto; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-    th { background:#fafafa; font-weight:600; font-size:13px; color:#444; position: sticky; top:0; z-index:1; }
-    tr:hover td { background:#fcfcff; }
-    .row-actions { display:flex; gap:8px; }
-    .toolbar { display:flex; gap:8px; align-items:center; padding:12px 20px; border-top:1px solid var(--border);}
-    .muted { color: var(--muted); font-size: 12px;}
-    .pagination { display:flex; gap:6px; align-items:center; margin-left:auto; }
-    .pagination a, .pagination span { padding:6px 10px; border:1px solid var(--border); border-radius:8px; text-decoration:none; color:inherit; }
-    .pagination .current { background:#eef2ff; border-color:#c7d2fe; }
-    .radio { width: 16px; height: 16px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="card">
-      <div class="card-header">
-        <h1>インポート記録一覧</h1>
-        <form method="get" class="filters">
-          <div>
-            <label for="q">検索（ファイル名 / シート名 / バッチID）</label>
-            <input id="q" name="q" type="text" value="{{ q|default:'' }}" placeholder="例: Order_2025.xlsx">
-          </div>
-          <div>
-            <label for="from">作成日 From</label>
-            <input id="from" name="from" type="date" value="{{ date_from|default:'' }}">
-          </div>
-          <div>
-            <label for="to">作成日 To</label>
-            <input id="to" name="to" type="date" value="{{ date_to|default:'' }}">
-          </div>
-          <div>
-            <button class="btn btn-primary" type="submit">検索</button>
-          </div>
-        </form>
-      </div>
 
+{% block title %}インポート記録一覧 | KS Eurasia{% endblock %}
+{% block header %}インポート記録一覧{% endblock %}
+
+{% block content %}
+  <style>
+    .table-wrap{ overflow:auto; }
+    table.batches{ width:100%; border-collapse:collapse; background:#fff; }
+    table.batches th, table.batches td{
+      text-align:left; padding:10px 12px; border-bottom:1px solid #e5e7eb; white-space:nowrap;
+    }
+    table.batches thead th{
+      position:sticky; top:0; z-index:1; background:#fafcff; font-weight:600; color:#0c4a6e;
+    }
+    .radio{ width:16px; height:16px; }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
+    /* 簡易モーダル */
+    #confirm-delete-modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); align-items:center; justify-content:center; z-index:2200;}
+    #confirm-delete-modal .dialog{ width:520px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.18); padding:20px; }
+  </style>
+
+  <!-- フィルタ -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div style="font-weight:700;">インポート記録一覧</div>
+        <div class="muted" style="font-size:12px;">ファイル名／シート名／作成日時で絞り込みできます</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="get" class="row" action="{% url 'import_batch_list' %}">
+        <div class="col" style="min-width:260px;">
+          <label class="muted" for="q">検索（ファイル名 / シート名 / バッチID）</label>
+          <input id="q" name="q" type="text" value="{{ q|default:'' }}"
+                 style="width:100%; height:40px; border:1px solid #e5e7eb; border-radius:10px; padding:8px 10px; background:#fff;">
+        </div>
+        <div class="col" style="min-width:200px;">
+          <label class="muted" for="from">作成日 From</label>
+          <input id="from" name="from" type="date" value="{{ date_from|default:'' }}"
+                 style="width:100%; height:40px; border:1px solid #e5e7eb; border-radius:10px; padding:8px 10px; background:#fff;">
+        </div>
+        <div class="col" style="min-width:200px;">
+          <label class="muted" for="to">作成日 To</label>
+          <input id="to" name="to" type="date" value="{{ date_to|default:'' }}"
+                 style="width:100%; height:40px; border:1px solid #e5e7eb; border-radius:10px; padding:8px 10px; background:#fff;">
+        </div>
+        <div class="col" style="align-self:flex-end; min-width:220px; display:flex; gap:10px;">
+          <button class="btn btn-primary" type="submit">検索</button>
+          <a class="btn" href="{% url 'import_batch_list' %}">リセット</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 一覧 -->
+  <section class="card" style="margin-top:16px;">
+    <div class="card-body">
       <div class="table-wrap">
-        <table>
+        <table class="batches">
           <thead>
             <tr>
-              <th style="width:48px;">選択</th>
-              <th>バッチID</th>
+              <th style="width:56px;">選択</th>
+              <th style="width:90px;">バッチID</th>
               <th>ファイル名</th>
-              <th>シート名</th>
-              <th>取り込み件数</th>
-              <th>作成日時</th>
-              <th>発注書</th>
-              <th>インボイス・パッキングリスト</th>
-              <th>オーダー一覧</th>
-              <th>削除</th>
+              <th style="width:160px;">シート名</th>
+              <th style="width:120px;">取り込み件数</th>
+              <th style="width:160px;">作成日時</th>
+              <th style="width:160px;">発注書</th>
+              <th style="width:220px;">インボイス・パッキング</th>
+              <th style="width:160px;">オーダー一覧</th>
+              <th style="width:110px;">削除</th>
             </tr>
           </thead>
           <tbody>
-          {% if page_obj.object_list %}
-            {% for b in page_obj.object_list %}
-              <tr data-batch-id="{{ b.id }}">
-                <td>
-                  <input class="radio" type="radio" name="batch_id" value="{{ b.id }}">
-                </td>
-                <td>#{{ b.id }}</td>
-                <td title="{{ b.source_filename }}">{{ b.source_filename|default:"(不明)" }}</td>
-                <td>{{ b.sheet_name|default:"(未指定)" }}</td>
-                <td>{{ b.item_count|default:"-" }}</td>
-                <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
-                <td>
+            {% if page_obj.object_list %}
+              {% for b in page_obj.object_list %}
+                <tr data-batch-id="{{ b.id }}" data-buyers="{{ b.buyers|default:'' }}">
+                  <td>
+                    <input class="radio" type="radio" name="batch_id" value="{{ b.id }}">
+                  </td>
+                  <td>#{{ b.id }}</td>
+                  <td title="{{ b.source_filename }}">{{ b.source_filename|default:"(不明)" }}</td>
+                  <td>{{ b.sheet_name|default:"(未指定)" }}</td>
+                  <td>{{ b.item_count|default:"-" }}</td>
+                  <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
+                  <td>
                     <a class="btn" href="{% url 'download_purchase_order' b.id %}">発注書ダウンロード</a>
-                </td>
-                <td>
-                    <a class="btn" href="{% url 'export_invoice_packing' b.id %}">IVPLダウンロード</a>
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary"
-                       href="{% url 'batch_order_list' batch_id=b.id %}">
-                      このバッチのオーダー一覧
-                    </a>
-                </td>
-                <td>
+                  </td>
+                  <td>
+                    {% if b.buyers == "YAMATO_TOYO" %}
+                      <span class="btn" disabled>IV/PLは対象外</span>
+                    {% else %}
+                      <a class="btn" href="{% url 'export_invoice_packing' b.id %}">IVPLダウンロード</a>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a class="btn" href="{% url 'batch_order_list' batch_id=b.id %}">このバッチのオーダー</a>
+                  </td>
+                  <td>
                     <button class="btn btn-danger btn-sm js-delete"
                             data-id="{{ b.id }}"
                             data-name="#{{ b.id }} {{ b.source_filename|default:'(不明)'}}">
                       削除
                     </button>
                   </td>
-              </tr>
-            {% endfor %}
-          {% else %}
-            <tr><td colspan="6" class="muted">データがありません。</td></tr>
-          {% endif %}
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="10" class="muted" style="padding:16px 12px;">データがありません。</td></tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
 
-      <div class="toolbar">
+      <!-- 下部ツールバー -->
+      <div style="display:flex; gap:10px; align-items:center; border-top:1px solid #e5e7eb; padding-top:12px; margin-top:12px;">
         <div class="muted">選択したバッチに対して実行</div>
-        <div class="row-actions">
-          <!-- 発注書作成 -->
-          <form id="form-po" method="post" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="batch_id" id="po-batch-id">
-            <button type="submit" class="btn btn-primary" disabled>発注書を作成してダウンロード</button>
-          </form>
+        <form id="form-po" method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="batch_id" id="po-batch-id">
+          <button type="submit" class="btn btn-primary" disabled>発注書を作成してダウンロード</button>
+        </form>
+        <form id="form-ip" method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="batch_id" id="ip-batch-id">
+          <button type="submit" class="btn" disabled>インボイス&パッキングを作成してダウンロード</button>
+        </form>
 
-          <!-- インボイス・パッキングリスト作成 -->
-          <form id="form-ip" method="post" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="batch_id" id="ip-batch-id">
-            <button type="submit" class="btn" disabled>インボイス&パッキングリストを作成してダウンロード</button>
-          </form>
-        </div>
-
-        <div class="pagination">
+        <!-- ページング（右寄せ） -->
+        <div style="margin-left:auto; display:flex; gap:6px; align-items:center;">
           {% if page_obj.has_previous %}
-            <a href="?page=1{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">« 最初</a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">‹ 前</a>
+            <a class="btn" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">« 最初</a>
+            <a class="btn" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">‹ 前</a>
           {% endif %}
-          <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+          <span class="btn" style="background:#eef6ff; border-color:#cfe8ff;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
           {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">次 ›</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">最後 »</a>
+            <a class="btn" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">次 ›</a>
+            <a class="btn" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}">最後 »</a>
           {% endif %}
         </div>
       </div>
     </div>
+  </section>
 
-    <div id="confirm-delete-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); align-items:center; justify-content:center;">
-        <div class="card" style="width:520px; padding:20px;">
-            <h3 style="margin-top:0;">バッチ削除の確認</h3>
-            <p id="confirm-text" style="margin:12px 0 18px;">
-            選択したバッチを削除します。関連するオーダーもすべて削除されます。よろしいですか？
-            </p>
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-            <button class="btn" id="cancel-delete">キャンセル</button>
-            <form id="delete-form" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">削除する</button>
-            </form>
-            </div>
-        </div>
+  <!-- 削除モーダル -->
+  <div id="confirm-delete-modal">
+    <div class="dialog">
+      <h3 style="margin:0 0 6px;">バッチ削除の確認</h3>
+      <p id="confirm-text" class="muted" style="margin:8px 0 16px;">
+        選択したバッチを削除します。関連するオーダーもすべて削除されます。よろしいですか？
+      </p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn" id="cancel-delete">キャンセル</button>
+        <form id="delete-form" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">削除する</button>
+        </form>
+      </div>
     </div>
-
   </div>
 
   <script>
@@ -175,40 +172,48 @@
       const formPO = document.querySelector('#form-po');
       const formIP = document.querySelector('#form-ip');
 
-      function onSelect(id) {
-        btnPO.disabled = false;
-        btnIP.disabled = false;
+      function onSelect(id, buyers){
         inputPO.value = id;
         inputIP.value = id;
-
-        // ここでバックエンドのURLに合わせて動的にPOST先を設定
         formPO.action = `/imports/${id}/export/purchase-order/`;
         formIP.action = `/imports/${id}/export/invoice-packing/`;
+
+        // 有効/無効（YAMATOはIVPL不可）
+        btnPO.disabled = false;
+        if (buyers === 'YAMATO_TOYO') {
+          btnIP.disabled = true;
+        } else {
+          btnIP.disabled = false;
+        }
       }
 
-      radios.forEach(r => {
-        r.addEventListener('change', (e) => {
-          onSelect(e.target.value);
+      radios.forEach(r=>{
+        r.addEventListener('change', (e)=>{
+          const tr = e.target.closest('tr');
+          const buyers = tr ? tr.dataset.buyers : '';
+          onSelect(e.target.value, buyers);
         });
       });
     })();
 
-    const modal = document.getElementById('confirm-delete-modal');
-    const confirmText = document.getElementById('confirm-text');
-    const deleteForm = document.getElementById('delete-form');
-    const cancelBtn = document.getElementById('cancel-delete');
+    // 削除モーダル
+    (function(){
+      const modal = document.getElementById('confirm-delete-modal');
+      const confirmText = document.getElementById('confirm-text');
+      const deleteForm = document.getElementById('delete-form');
+      const cancelBtn = document.getElementById('cancel-delete');
 
-    document.querySelectorAll('.js-delete').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        const name = btn.dataset.name || ('#' + id);
-        confirmText.textContent = `「${name}」を削除します。関連オーダーも削除されます。よろしいですか？`;
-        deleteForm.action = `/imports/${id}/delete/`;
-        modal.style.display = 'flex';
-    });
-    });
-    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+      document.querySelectorAll('.js-delete').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.dataset.id;
+          const name = btn.dataset.name || ('#' + id);
+          confirmText.textContent = `「${name}」を削除します。関連オーダーも削除されます。よろしいですか？`;
+          deleteForm.action = `/imports/${id}/delete/`;
+          modal.style.display = 'flex';
+        });
+      });
+      cancelBtn.addEventListener('click', ()=> modal.style.display = 'none');
+      modal.addEventListener('click', (e)=> { if (e.target === modal) modal.style.display = 'none'; });
+    })();
   </script>
-</body>
-</html>
+{% endblock %}

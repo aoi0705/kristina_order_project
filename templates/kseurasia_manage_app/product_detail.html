@@ -1,60 +1,92 @@
+{% extends "kseurasia_manage_app/base_dashboard.html" %}
 {% load dynattrs %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ vendor_label }} 詳細 #{{ obj.id }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+{% block title %}{{ vendor_label }} 商品詳細 #{{ obj.id }} | KS Eurasia{% endblock %}
+{% block header %}{{ vendor_label }} 商品詳細{% endblock %}
+
+{% block content %}
   <style>
-    body { background:#f7f7f9; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    dt { width: 220px; }
-    dd { margin-left: 240px; }
-    @media (max-width: 768px){
-      dt { width: 100%; }
-      dd { margin-left: 0; }
+    .field-label { width: 240px; white-space: nowrap; }
+    .form-control[readonly],
+    .form-control:disabled { background: #f8fafc; }
+    .required-outline{
+      background:#FFF3E0;                           /* 淡いオレンジ */
+      box-shadow: inset 0 0 0 3px rgba(255,179,0,.35);
+      border-radius:.75rem;
     }
   </style>
-</head>
-<body>
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'product_list' %}?vendor={{ vendor }}">{{ vendor_label }} 一覧</a>
-      <span class="navbar-text text-light">#{{ obj.id }}</span>
-    </div>
-  </nav>
 
-  <main class="container py-4" style="max-width: 1100px;">
-    <div class="card shadow-sm">
-      <div class="card-header">
-        <h5 class="mb-0">{{ vendor_label }} 詳細 #{{ obj.id }}</h5>
-      </div>
-      <div class="card-body">
-        <dl>
-          {% for col in detail_columns %}
-            {% with val=obj|get_attr:col.field %}
-              <dt>{{ col.label }}</dt>
-              <dd class="{% if col.mono %}mono{% endif %}">
-                {% if col.multiline %}
-                  <pre class="mb-0" style="white-space: pre-wrap;">{{ val }}</pre>
-                {% elif col.format == 'datetime' and val %}
-                  {{ val|date:"Y-m-d H:i" }}
-                {% else %}
-                  {{ val }}
-                {% endif %}
-              </dd>
-            {% endwith %}
-          {% endfor %}
-        </dl>
+  <section class="card{% if obj.RequiredProduct_flg %} required-outline{% endif %}">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="muted">ベンダー：<code class="mono">{{ vendor }}</code></div>
+        <div class="muted">商品ID：<span class="mono">#{{ obj.id }}</span></div>
       </div>
     </div>
 
-    <div class="mt-3">
-      <a href="{% url 'product_list' %}?vendor={{ vendor }}" class="btn btn-outline-secondary">&larr; 一覧へ戻る</a>
-    </div>
-  </main>
+    <form method="post" class="card-body">
+      {% csrf_token %}
+      <input type="hidden" name="vendor" value="{{ vendor }}">
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+      <div class="row g-3">
+        {% for col in detail_columns %}
+          {% with name=col.field val=obj|get_attr:col.field %}
+            <div class="col-12">
+              <div class="row g-2 align-items-start">
+                <label class="col-12 col-md-3 field-label col-form-label">{{ col.label }}</label>
+                <div class="col-12 col-md-9">
+      
+                  {% if name == "RequiredProduct_flg" %}
+                    {% with f=val|stringformat:"s"|lower %}
+                      {% if name == "id" or name == "created_at" or name == "updated_at" or col.format == "datetime" %}
+                        {# ありえませんが、読み取り専用扱いの時 #}
+                        <select class="form-select" disabled>
+                          <option value="必要" {% if f == 'true' or f == '1' or f == 'yes' or f == 'on' or f == '必要' or f == 'ひつよう' or f == '必須' %}selected{% endif %}>必要</option>
+                          <option value="不要" {% if f == '' or f == 'false' or f == '0' or f == 'no' or f == 'off' or f == '不要' or f == 'ふよう' %}selected{% endif %}>不要</option>
+                        </select>
+                      {% else %}
+                        <select name="{{ name }}" id="requiredSelect" class="form-select">
+                          <option value="必要" {% if f == 'true' or f == '1' or f == 'yes' or f == 'on' or f == '必要' or f == 'ひつよう' or f == '必須' %}selected{% endif %}>必要</option>
+                          <option value="不要" {% if f == '' or f == 'false' or f == '0' or f == 'no' or f == 'off' or f == '不要' or f == 'ふよう' %}selected{% endif %}>不要</option>
+                        </select>
+                      {% endif %}
+                    {% endwith %}
+      
+                  {% else %}
+                    {# 他の項目は既存ロジックそのまま #}
+                    {% if name == "id" or name == "created_at" or name == "updated_at" or col.format == "datetime" %}
+                      <input type="text"
+                             class="form-control {% if col.mono %}mono{% endif %}"
+                             value="{% if col.format == 'datetime' and val %}{{ val|date:'Y-m-d H:i' }}{% else %}{{ val }}{% endif %}"
+                             readonly>
+                    {% else %}
+                      <input type="text"
+                             name="{{ name }}"
+                             class="form-control {% if col.mono %}mono{% endif %}"
+                             value="{{ val }}">
+                    {% endif %}
+                  {% endif %}
+      
+                </div>
+              </div>
+            </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      <hr class="my-4">
+
+      <div class="d-flex justify-content-between">
+        <a class="btn" href="{% url 'product_list' %}?vendor={{ vendor }}">商品一覧へ戻る</a>
+        <div class="d-flex gap-2">
+          <button type="submit" name="action" value="save" class="btn btn-primary">変更を保存</button>
+          <button type="submit" name="action" value="delete" class="btn btn-danger"
+                  onclick="return confirm('本当に削除しますか？この操作は取り消せません。');">
+            削除
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+{% endblock %}

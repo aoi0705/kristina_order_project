@@ -27,6 +27,8 @@ urlpatterns = [
     path("api/reports/ar/export",       views.reports_ar_export,       name="reports_ar_export"),
     path("api/reports/ap/export",       views.reports_ap_export,       name="reports_ap_export"),
     path("api/reports/cashflow/export", views.reports_cashflow_export, name="reports_cashflow_export"),
+    #4レポート全てダウンロード
+    path("api/reports/export-all", views.reports_export_bundle, name="reports_export_bundle"),
 
     #以下商品情報管理
     path("products/import/", views.product_import, name="product_import"),

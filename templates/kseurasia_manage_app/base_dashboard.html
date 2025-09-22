@@ -1,0 +1,192 @@
+{% load static %}
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}KS Eurasia Console{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#38bdf8;   /* 水色（Tailwind sky-400 相当） */
+      --primary-600:#0ea5e9;
+      --bg:#f7fbfe;
+      --card:#ffffff;
+      --fg:#1f2937;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --sidebar:#ffffff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", Meiryo, sans-serif;
+      color:var(--fg); background:var(--bg);
+      display:flex; min-height:100vh;
+    }
+    /* Layout */
+    .sidebar{
+      width:260px; background:var(--sidebar); border-right:1px solid var(--border);
+      position:fixed; inset:0 auto 0 0; z-index:1000; transform:translateX(0); transition:transform .25s ease;
+    }
+    .sidebar.hidden{ transform:translateX(-100%); }
+    .sidebar .brand{
+      display:flex; align-items:center; gap:10px; padding:16px 18px; border-bottom:1px solid var(--border);
+      background:linear-gradient(135deg, var(--primary), var(--primary-600)); color:#fff; font-weight:700;
+    }
+    .brand .logo{
+      width:28px; height:28px; border-radius:8px; background:#fff; color:var(--primary);
+      display:grid; place-items:center; font-weight:800;
+    }
+    nav{ padding:12px; }
+    .nav-group{ margin:12px 0 8px; padding:0 8px; font-size:12px; color:var(--muted); }
+    .nav{
+      list-style:none; margin:0; padding:0;
+    }
+    .nav a{
+      display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; text-decoration:none; color:inherit;
+    }
+    .nav a:hover{ background:#f0f9ff; }
+    .nav a.active{ background:#e0f2fe; color:#0c4a6e; font-weight:600; }
+    .nav svg{ width:18px; height:18px; color:#0ea5e9; }
+
+    .content-wrap{
+      flex:1; margin-left:260px; min-width:0; display:flex; flex-direction:column;
+    }
+    .topbar{
+      position:sticky; top:0; z-index:500; background:var(--card); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:12px; padding:10px 16px;
+    }
+    .menu-btn{
+      display:none; border:1px solid var(--border); background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer;
+    }
+    .menu-btn svg{ width:18px; height:18px; }
+
+    .container{ width:100%; max-width:1100px; margin:18px auto; padding:0 16px; }
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 2px 12px rgba(2,132,199,.06);
+    }
+    .card-header{ padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .card-body{ padding:18px; }
+    .muted{ color:var(--muted); }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; text-decoration:none; color:inherit;
+    }
+    .btn-primary{ background:var(--primary); border-color:transparent; color:#fff; }
+    .btn:hover{ filter:brightness(98%); }
+    .grid{ display:grid; gap:16px; }
+    @media (max-width: 1024px){
+      .content-wrap{ margin-left:0; }
+      .menu-btn{ display:inline-flex; }
+      .sidebar{ transform:translateX(-100%); }
+      .sidebar.show{ transform:translateX(0); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    }
+
+    /* Form */
+    label{ display:block; font-size:12px; color:var(--muted); margin:6px 0 6px; }
+    input[type="text"], input[type="month"], input[type="date"], input[type="file"], select{
+      width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; background:#fff;
+    }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; }
+    .row .col{ flex:1 1 260px; min-width:260px; }
+    .hint{ font-size:12px; color:var(--muted); }
+
+    #globalOverlay{
+    position:fixed; inset:0; display:none;
+    background:rgba(255,255,255,.85);
+    z-index:2000; align-items:center; justify-content:center;
+    }
+    #globalOverlay.show{ display:flex; }
+    #globalOverlay .spinner{
+    width:48px; height:48px; border:6px solid #e5e7eb;
+    border-top-color: var(--primary-600);
+    border-radius:50%; animation:spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+    #globalOverlay .msg{ margin-top:12px; font-weight:700; color:#0c4a6e; }
+  </style>
+</head>
+<body>
+    <div id="globalOverlay" class="flex-column" aria-hidden="true">
+        <div class="spinner"></div>
+        <div class="msg">処理中…</div>
+    </div>
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="logo">K</div>
+      <div>KS Eurasia Console</div>
+    </div>
+    <nav>
+      <div class="nav-group">メニュー</div>
+      <ul class="nav">
+        <li><a href="/" data-match="/" class="active">
+          <!-- home icon -->
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.5"/></svg>
+          トップ（取込）
+        </a></li>
+        <li><a href="/reports/" data-match="/reports/">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h10v6h6v10H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 4v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
+          レポート発行
+        </a></li>
+        <li><a href="/products/import/" data-match="/products">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7V4h8v3" stroke="currentColor" stroke-width="1.5"/></svg>
+          商品登録
+        </a></li>
+        <li><a href="/orders/" data-match="/orders/">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16H5z" stroke="currentColor" stroke-width="1.5"/><path d="M8 8h8M8 12h8M8 16h6" stroke="currentColor" stroke-width="1.5"/></svg>
+          登録オーダー
+        </a></li>
+        <li><a href="/imports/" data-match="/imports/">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5"/></svg>
+          インポート記録
+        </a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content-wrap">
+    <div class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="メニュー">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+      <div style="font-weight:700;color:#0c4a6e;">{% block header %}ダッシュボード{% endblock %}</div>
+    </div>
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    // サイドバー開閉（モバイル）
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    if(menuBtn){
+      menuBtn.addEventListener('click', ()=> sidebar.classList.toggle('show'));
+      // 外側クリックで閉じる
+      document.addEventListener('click', (e)=>{
+        if(window.innerWidth <= 1024 && sidebar.classList.contains('show')){
+          if(!sidebar.contains(e.target) && !menuBtn.contains(e.target)){
+            sidebar.classList.remove('show');
+          }
+        }
+      });
+    }
+    // 現在URLに応じてアクティブ表示
+    const path = location.pathname;
+    document.querySelectorAll('.nav a[data-match]').forEach(a=>{
+      const m = a.getAttribute('data-match');
+      if(path === '/' && m === '/'){
+        a.classList.add('active');
+      }else if(m !== '/' && path.startsWith(m)){
+        a.classList.add('active');
+      }else{
+        a.classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>
