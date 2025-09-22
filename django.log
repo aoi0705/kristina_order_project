@@ -16952,3 +16952,7 @@ django.db.utils.OperationalError: (1054, "Unknown column 'kseurasia_manage_app_n
 2025-09-22 20:41:58,265 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
 2025-09-22 20:41:58,939 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
 2025-09-22 22:27:17,039 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-22 22:30:00,604 [WARNING] django.request: Not Found: /favicon.ico
+2025-09-23 00:22:44,418 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 00:23:10,718 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 00:23:30,139 [INFO] django.utils.autoreload: Watching for file changes with StatReloader

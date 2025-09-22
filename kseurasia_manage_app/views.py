@@ -8,7 +8,8 @@ from kseurasia_manage_app.models import *
 from django.views.decorators.http import require_POST
 import io
 import pandas as pd
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
+from dateutil import parser as dateparser  # 3.6 では fromisoformat がないため
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Count
@@ -667,7 +668,7 @@ def _infer_vendor_from_obj(obj) -> str:
     # デフォルト
     return "royal"
 
-def _get_order_obj_by_pk(pk: int, vendor_hint: str | None = None):
+def _get_order_obj_by_pk(pk: int, vendor_hint: Optional[str] = None):
     """
     vendor 指定があれば該当モデルから、なければ 3 モデルを順に探索して取得
     """
@@ -767,7 +768,7 @@ def _last_header_col(ws, header_row: int) -> int:
     # 念のためフォールバック（ヘッダーが空だった場合）
     return last or ws.max_column
 
-def _as_decimal_money(v) -> Decimal | None:
+def _as_decimal_money(v) -> Optional[Decimal]:
     """通貨系の文字列/数値を Decimal に正規化。空や不正値は None。"""
     if v is None:
         return None
@@ -798,19 +799,19 @@ def _norm_po_header(s: str) -> str:
 # 正規化済みルックアップ辞書
 _PO_CANON = { _norm_po_header(k): v for k, v in PO_TEMPLATE_TO_ROYAL_MAP.items() }
 
-def resolve_po_field(header_text: str) -> str | None:
+def resolve_po_field(header_text: str) -> Optional[str]:
     """テンプレ列見出しから ROYAL(OrderContent) のフィールド名を返す。未ヒットは None。"""
     return _PO_CANON.get(_norm_po_header(header_text))
 
 # 正規化済みルックアップ辞書
 _PO_CANON_NIPPONIKA = { _norm_po_header(k): v for k, v in NP_PO_FIELD_MAP.items() }
 
-def resolve_po_field_nipponika(header_text: str) -> str | None:
+def resolve_po_field_nipponika(header_text: str) -> Optional[str]:
     """テンプレ列見出しから ROYAL(OrderContent) のフィールド名を返す。未ヒットは None。"""
     return _PO_CANON_NIPPONIKA.get(_norm_po_header(header_text))
 
 
-def parse_money_to_int(value) -> int | None:
+def parse_money_to_int(value) -> Optional[int]:
     """
     金額表示（例: '1,234', '¥2,500', '\3,000', '4,500円' など）を整数に変換する。
     整数に変換できない場合は None を返す。
@@ -875,7 +876,7 @@ def detect_header_rows(ws,b, min_hits: int = 4, max_scan_rows: int = 50) -> dict
 
     return {"normal": normal, "tester": tester}
 
-def build_po_colmap(ws, b, header_row: int) -> dict[int, str]:
+def build_po_colmap(ws, b, header_row: int) -> Dict[int, str]:
     """
     指定行の列見出しを読み、{列番号: OrderContentフィールド名} を返す。
     """
@@ -956,7 +957,8 @@ def build_header_index(ws, header_row: int):
         normd[_norm(s)] = c
     return exact, normd
 
-def find_col(header_index_norm: dict, *candidates: str) -> int | None:
+from typing import Dict
+def find_col(header_index_norm: Dict[str, int], *candidates: str) -> Optional[int]:
     """
     候補名（ゆらぎ含む複数）から最初に見つかった列番号を返す
     """
@@ -2678,12 +2680,12 @@ def orders_imported_in_year(year: int):
         .order_by("id")
     )
 
-def _parse_ym(ym: str) -> tuple[int, int]:
+def _parse_ym(ym: str) -> Tuple[int, int]:
     """'YYYY-MM' → (year, month)。不正は ValueError。"""
     dt = datetime.strptime(ym, "%Y-%m")
     return dt.year, dt.month
 
-def _month_range_aware(start_ym: str, end_ym: str) -> tuple[datetime, datetime, str]:
+def _month_range_aware(start_ym: str, end_ym: str) -> Tuple[datetime, datetime, str]:
     """
     [start, end) の aware datetime（終了は『終了月の翌月1日 00:00』未満）。
     併せてファイル名用のラベルも返す（例: '2024-04_2024-06'）。
@@ -2779,7 +2781,7 @@ def reports_sales_export(request):
 
     # --- 日付×ブランド(=テンプレ内のシート別名) で集計 ---
     # 例: sales_purchase_dict[date][sheet_alias] = 仕入合計
-    sales_purchase_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    sales_purchase_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     sales_sell_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     for r in rows:
@@ -2907,7 +2909,7 @@ def reports_sales_export(request):
 
     # --- 日付×ブランド(=テンプレ内のシート別名) で集計 ---
     # 例: sales_purchase_dict[date][sheet_alias] = 仕入合計
-    sales_purchase_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    sales_purchase_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     sales_sell_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     for r in rows:
@@ -3035,7 +3037,7 @@ def reports_sales_export(request):
 
     # --- 日付×ブランド(=テンプレ内のシート別名) で集計 ---
     # 例: sales_purchase_dict[date][sheet_alias] = 仕入合計
-    sales_purchase_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    sales_purchase_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     sales_sell_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     for r in rows:
@@ -3487,10 +3489,10 @@ def reports_ap_export(request):
 
     # --- 日付×ブランド(=テンプレ内のシート別名) で集計 ---
     # 例: sales_purchase_dict[date][sheet_alias] = 仕入合計
-    sales_purchase_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    sales_sell_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    zandaka_dict: dict[datetime.datetime, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    next_dict: dict[datetime.datetime, dict[str, int]] =  defaultdict(lambda: defaultdict(int))
+    sales_purchase_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    sales_sell_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    zandaka_dict: Dict[datetime, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    next_dict: Dict[datetime, Dict[str, int]] =  defaultdict(lambda: defaultdict(int))
 
     for r in RC_rows:
         brand = (r["Brand_name"] or "").strip()
@@ -3756,7 +3758,7 @@ def reports_cashflow_export(request):
     # APテンプレから支払条件（オフセット月）を取得
     ap_wb = openpyxl.load_workbook(AP_TEMPLATE_PATH, data_only=True)
     ap_ws = ap_wb["template"]
-    brand_month_offset: dict[str, int] = {}  # {sheet_alias: month_offset}
+    brand_month_offset: Dict[str, int] = {}  # {sheet_alias: month_offset}
     for r in range(7, 67):  # C列=3, D列=4
         names = ap_ws.cell(r, 3).value
         cond = ap_ws.cell(r, 4).value
@@ -3806,7 +3808,7 @@ def reports_cashflow_export(request):
             dt = r["batch__created_at"]
             if isinstance(dt, str):
                 try:
-                    dt = datetime.fromisoformat(dt)
+                    dt = dateparser.parse(dt)
                 except Exception:
                     continue
             if timezone.is_aware(dt):
