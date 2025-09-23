@@ -1412,6 +1412,8 @@ def import_orders(request):
 
         data["batch"] = batch
         data["RequiredProduct_flg"] = req_flg
+        if buyers == "YAMATO_TOYO":
+            data["Brand"] = "UTENA"
         cleaned = {k: v for k, v in data.items() if k in order_fields}
 
         if OrderModel is OrderContent:
@@ -4213,6 +4215,7 @@ def product_import(request):
         elif vendor == "YAMATO/TOYO TRADING社向け":
             if not _nz(data.get("Brand")) or not _nz(data.get("Item_Name")):
                 continue
+            data["Brand"] = "UTENA"
 
         g_hex = _cell_bg_hex6(ws.cell(row=r, column=7))  # G列
         if g_hex and g_hex == REQ_HEX:
@@ -4373,3 +4376,395 @@ def reports_export_bundle(request):
     resp = HttpResponse(buf.getvalue(), content_type="application/zip")
     resp["Content-Disposition"] = f'attachment; filename="{escape_uri_path(zip_name)}"'
     return resp
+
+#以下ランキング
+def _parse_yyyy_mm_dd(s: str) -> date:
+    try:
+        dt = datetime.strptime(s.strip(), "%Y-%m-%d")
+        return date(dt.year, dt.month, dt.day)
+    except Exception:
+        raise Http404("start_date / end_date は 'YYYY-MM-DD' 形式で指定してください。")
+
+def _aware_range_from_dates(start_d: date, end_d: date):
+    """
+    naive date の [start_d, end_d] を、tz aware の [start_dt, end_dt_next) に変換
+    """
+    tz = timezone.get_current_timezone()
+    start_dt = timezone.make_aware(datetime(start_d.year, start_d.month, start_d.day, 0, 0, 0), tz)
+    # end は翌日の0:00を排他的上限に
+    end_dt   = timezone.make_aware(datetime(end_d.year, end_d.month, end_d.day, 0, 0, 0), tz) + timedelta(days=1)
+    return start_dt, end_dt
+
+def _to_int(val):
+    # 文字列の金額/数量をざっくり整数化（空/Noneは0）
+    if val is None:
+        return 0
+    s = str(val).strip().replace(",", "")
+    if s == "":
+        return 0
+    try:
+        return int(float(s))
+    except Exception:
+        return 0
+
+def _collect_rows(start_dt, end_dt, vendor: str):
+    """
+    期間内の各社の rows を辞書で返す。
+    vendor = 'all' / 'ROYAL COSMETICS' / 'NIPPONIKATRADING' / 'YAMATO_TOYO'
+    """
+    rows = {"ROYAL COSMETICS": [], "NIPPONIKATRADING": [], "YAMATO_TOYO": []}
+
+    # ROYAL
+    if vendor in ("all", "ROYAL COSMETICS"):
+        rc = (
+            OrderContent.objects
+            .select_related("batch")
+            .filter(batch__created_at__gte=start_dt, batch__created_at__lt=end_dt, batch__buyers="ROYAL COSMETICS")
+            .values("Brand_name", "Product_name", "Order", "Amount", "batch__created_at")
+            .order_by("id")
+        )
+        rows["ROYAL COSMETICS"] = list(rc)
+
+    # NIPPONIKATRADING
+    if vendor in ("all", "NIPPONIKATRADING"):
+        nk = (
+            NIPPONIKATRADING_OrderContent.objects
+            .select_related("batch")
+            .filter(batch__created_at__gte=start_dt, batch__created_at__lt=end_dt, batch__buyers="NIPPONIKATRADING")
+            .values("Brand_name", "日本語名", "Description_of_goods", "ORDER", "Amount", "batch__created_at")
+            .order_by("id")
+        )
+        rows["NIPPONIKATRADING"] = list(nk)
+
+    # YAMATO_TOYO
+    if vendor in ("all", "YAMATO_TOYO"):
+        ym = (
+            YAMATO_TOYO_OrderContent.objects
+            .select_related("batch")
+            .filter(batch__created_at__gte=start_dt, batch__created_at__lt=end_dt, batch__buyers="YAMATO_TOYO")
+            .values("Brand", "Item_Name", "Quantity", "総販売価格", "batch__created_at")
+            .order_by("id")
+        )
+        rows["YAMATO_TOYO"] = list(ym)
+
+    return rows
+
+def _resolve_product_link(brand: str, name: str):
+    """
+    ランキングの商品名/ブランドから、登録商品の (vendor_key, pk) を推定する。
+    見つからなければ (None, None) を返す。
+    vendor_key は product_detail が参照する ?vendor= の値（'royal'/'nipponika'/'yamato'）に合わせる。
+    """
+    brand = (brand or "").strip()
+    name  = (name or "").strip()
+    if not name:
+        return (None, None)
+
+    # ROYAL
+    try:
+        pk = (RY_ProductInfo.objects
+              .filter(Q(Product_name__iexact=name) | Q(日本語名__iexact=name))
+              .filter(Brand_name__iexact=brand if brand else Q())
+              .values_list("id", flat=True).first())
+        if pk:
+            return ("royal", pk)
+    except Exception:
+        pass
+
+    # NIPPONIKA
+    try:
+        pk = (NIPPONIKATRADING_ProductInfo.objects
+              .filter(Q(日本語名__iexact=name) | Q(Description_of_goods__iexact=name))
+              .filter(Brand_name__iexact=brand if brand else Q())
+              .values_list("id", flat=True).first())
+        if pk:
+            return ("nipponika", pk)
+    except Exception:
+        pass
+
+    # YAMATO/TOYO （Brand は実運用的に UTENA 固定が多い想定）
+    try:
+        qs = YAMATO_TOYO_ProductInfo.objects.filter(Item_Name__iexact=name)
+        if brand:
+            qs = qs.filter(Brand__iexact=brand)
+        pk = qs.values_list("id", flat=True).first()
+        if pk:
+            return ("yamato", pk)
+    except Exception:
+        pass
+
+    return (None, None)
+
+def _make_rankings(rows_dict, limit: int = None):
+    """
+    rows_dict = {
+      "ROYAL COSMETICS": [ {...}, ... ],
+      "NIPPONIKATRADING": [ {...}, ... ],
+      "YAMATO_TOYO": [ {...}, ... ],
+    }
+    を受けて、(buyer, brand, product) 各ランキングを返す
+    """
+    # buyer 別
+    buyer_total = defaultdict(lambda: {"sales": 0, "qty": 0})
+
+    # brand 別（全社横断だが「バイヤー×ブランド」で行を持つ）
+    brand_total = defaultdict(lambda: {"sales": 0, "qty": 0})  # key=(buyer, brand)
+
+    # product 別（全社横断だが「バイヤー×ブランド×商品」で行を持つ）
+    product_total = defaultdict(lambda: {"sales": 0, "qty": 0})  # key=(buyer, brand, name)
+
+    # ROYAL 集計
+    for r in rows_dict.get("ROYAL COSMETICS", []):
+        buyer = "ROYAL COSMETICS"
+        brand = (r.get("Brand_name") or "").strip()
+        pname = (r.get("Product_name") or "").strip()
+        qty   = _to_int(r.get("Order"))
+        sales = _to_int(r.get("Amount"))
+
+        buyer_total[buyer]["sales"] += sales
+        buyer_total[buyer]["qty"]   += qty
+
+        if brand:
+            brand_total[(buyer, brand)]["sales"] += sales
+            brand_total[(buyer, brand)]["qty"]   += qty
+        if pname:
+            product_total[(buyer, brand, pname)]["sales"] += sales
+            product_total[(buyer, brand, pname)]["qty"]   += qty
+
+    # NIPPONIKA 集計
+    for r in rows_dict.get("NIPPONIKATRADING", []):
+        buyer = "NIPPONIKATRADING"
+        brand = (r.get("Brand_name") or "").strip()
+        # 商品名は「日本語名」優先、なければ「Description_of_goods」
+        pname = (r.get("日本語名") or "").strip() or (r.get("Description_of_goods") or "").strip()
+        qty   = _to_int(r.get("ORDER"))
+        sales = _to_int(r.get("Amount"))
+
+        buyer_total[buyer]["sales"] += sales
+        buyer_total[buyer]["qty"]   += qty
+
+        if brand:
+            brand_total[(buyer, brand)]["sales"] += sales
+            brand_total[(buyer, brand)]["qty"]   += qty
+        if pname:
+            product_total[(buyer, brand, pname)]["sales"] += sales
+            product_total[(buyer, brand, pname)]["qty"]   += qty
+
+    # YAMATO 集計（売上は「総販売価格」）
+    for r in rows_dict.get("YAMATO_TOYO", []):
+        buyer = "YAMATO_TOYO"
+        brand = (r.get("Brand") or "").strip()
+        pname = (r.get("Item_Name") or "").strip()
+        qty   = _to_int(r.get("Quantity"))
+        sales = _to_int(r.get("総販売価格"))
+
+        buyer_total[buyer]["sales"] += sales
+        buyer_total[buyer]["qty"]   += qty
+
+        if brand:
+            brand_total[(buyer, brand)]["sales"] += sales
+            brand_total[(buyer, brand)]["qty"]   += qty
+        if pname:
+            product_total[(buyer, brand, pname)]["sales"] += sales
+            product_total[(buyer, brand, pname)]["qty"]   += qty
+
+    # 並び替え（売上降順、同額は数量降順）
+    def _sorted_list(items):
+        return sorted(items, key=lambda x: (x["sales"], x["qty"]), reverse=True)
+
+    # buyer ランキング（従来通り）
+    buyer_rank = _sorted_list([{"key": k, **v} for k, v in buyer_total.items()])
+
+    # brand ランキング（Buyer 列を追加）
+    brand_rank = _sorted_list([
+        {"buyer": k[0], "brand": k[1], "sales": v["sales"], "qty": v["qty"]}
+        for k, v in brand_total.items()
+    ])
+
+    # product ランキング（Buyer/Brand 列を追加。リンク解決もここで）
+    product_rank = _sorted_list([
+        {"buyer": k[0], "brand": k[1], "name": k[2], "sales": v["sales"], "qty": v["qty"]}
+        for k, v in product_total.items()
+    ])
+
+    # 任意の limit 指定がある場合にスライス（None/0 は全件）
+    if limit:
+        buyer_rank   = buyer_rank[:limit]
+        brand_rank   = brand_rank[:limit]
+        product_rank = product_rank[:limit]
+
+    # ▼ 商品ランキングの各行に「登録商品へのリンク情報」を付与
+    for r in product_rank:
+        vendor_key, pk = _resolve_product_link(r.get("brand"), r.get("name"))
+        r["vendor"] = vendor_key  # 'royal'/'nipponika'/'yamato' or None
+        r["pk"] = pk              # int or None
+
+    return buyer_rank, brand_rank, product_rank
+
+def ranking_console(request):
+    # ▼ パラメータ
+    start_s = (request.GET.get("start_date") or "").strip()
+    end_s   = (request.GET.get("end_date") or "").strip()
+    vendor  = (request.GET.get("vendor") or "all").strip()  # all / ROYAL COSMETICS / NIPPONIKATRADING / YAMATO_TOYO
+    # Excel 用の想定で残しておく（画面の表示には使わない）
+    try:
+        limit = int(request.GET.get("limit") or "50")
+    except Exception:
+        limit = 50
+    # 初期表示のプレビュー件数（各セクションの上位のみ）
+    try:
+        preview = int(request.GET.get("preview") or "10")
+    except Exception:
+        preview = 10
+    expand = (request.GET.get("expand") or "").strip()  # buyer / brand / product / all / ""
+
+    # 既定：当月1日～本日
+    today = timezone.localdate()
+    if not start_s:
+        start_d = today.replace(day=1)
+    else:
+        start_d = _parse_yyyy_mm_dd(start_s)
+
+    end_d = _parse_yyyy_mm_dd(end_s) if end_s else today
+    start_dt, end_dt = _aware_range_from_dates(start_d, end_d)
+
+    rows_dict = _collect_rows(start_dt, end_dt, vendor)
+    # 画面では全件を計算しておき、テンプレでプレビューor全件を切替
+    buyer_rank, brand_rank, product_rank = _make_rankings(rows_dict, limit=None)
+
+    expand_all = (expand == "all")
+    expanded_buyer = expand_all or (expand == "buyer")
+    expanded_brand = expand_all or (expand == "brand")
+    expanded_product = expand_all or (expand == "product")
+
+    ctx = {
+        "start_date": start_d.strftime("%Y-%m-%d"),
+        "end_date": end_d.strftime("%Y-%m-%d"),
+        "vendor": vendor,
+        "limit": limit,
+        "preview": preview,
+        "expand": expand,
+        "expand_all": expand_all,
+        "expanded_buyer": expanded_buyer,
+        "expanded_brand": expanded_brand,
+        "expanded_product": expanded_product,
+        "buyer_rank": buyer_rank,
+        "brand_rank": brand_rank,
+        "product_rank": product_rank,
+    }
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+
+def rankings_export(request):
+    # 画面と同じパラメータを解釈
+    start_s = (request.GET.get("start_date") or "").strip()
+    end_s   = (request.GET.get("end_date") or "").strip()
+    vendor  = (request.GET.get("vendor") or "all").strip()
+    try:
+        limit = int(request.GET.get("limit") or "1000")  # Excelはデフォルト広め
+    except Exception:
+        limit = 1000
+
+    today = timezone.localdate()
+    start_d = _parse_yyyy_mm_dd(start_s) if start_s else today.replace(day=1)
+    end_d   = _parse_yyyy_mm_dd(end_s)   if end_s   else today
+    start_dt, end_dt = _aware_range_from_dates(start_d, end_d)
+
+    rows_dict = _collect_rows(start_dt, end_dt, vendor)
+    buyer_rank, brand_rank, product_rank = _make_rankings(rows_dict, limit)
+
+    # --- Excel 生成 ---
+    wb = openpyxl.Workbook()
+    thin = Border(left=Side(style="thin"), right=Side(style="thin"),
+                  top=Side(style="thin"), bottom=Side(style="thin"))
+    head_font = Font(bold=True)
+    align_center = Alignment(horizontal="center", vertical="center")
+
+    def _write_sheet_buyer(items):
+        ws = wb.create_sheet("Buyer")
+        ws.append(["Rank", "Buyer", "Sales(¥)", "Qty"])
+        # ヘッダ装飾
+        for c in range(1, 5):
+            ws.cell(1, c).font = head_font
+            ws.cell(1, c).alignment = align_center
+            ws.cell(1, c).border = thin
+        # 本文
+        for i, row in enumerate(items, start=1):
+            ws.append([i, row["key"], int(row["sales"]), int(row["qty"])])
+            for c in range(1, 4+1):
+                ws.cell(i+1, c).border = thin
+        # 幅/書式
+        ws.column_dimensions["A"].width = 6
+        ws.column_dimensions["B"].width = 24
+        ws.column_dimensions["C"].width = 14
+        ws.column_dimensions["D"].width = 8
+        for r in range(2, len(items)+2):
+            ws.cell(r, 3).number_format = r'¥#,##0'
+            ws.cell(r, 4).number_format = r'#,##0'
+        try:
+            ws.header_footer.left_header = f"&L期間: {start_d:%Y-%m-%d} ～ {end_d:%Y-%m-%d}"
+            ws.header_footer.right_header = f"&R{timezone.localtime().strftime('%Y-%m-%d %H:%M')}"
+        except AttributeError:
+            pass
+
+    def _write_sheet_brand(items):
+        ws = wb.create_sheet("Brand")
+        ws.append(["Rank", "Buyer", "Brand", "Sales(¥)", "Qty"])
+        for c in range(1, 5+1):
+            ws.cell(1, c).font = head_font
+            ws.cell(1, c).alignment = align_center
+            ws.cell(1, c).border = thin
+        for i, row in enumerate(items, start=1):
+            ws.append([i, row["buyer"], row["brand"], int(row["sales"]), int(row["qty"])])
+            for c in range(1, 5+1):
+                ws.cell(i+1, c).border = thin
+        ws.column_dimensions["A"].width = 6
+        ws.column_dimensions["B"].width = 18
+        ws.column_dimensions["C"].width = 28
+        ws.column_dimensions["D"].width = 14
+        ws.column_dimensions["E"].width = 8
+        for r in range(2, len(items)+2):
+            ws.cell(r, 4).number_format = r'¥#,##0'
+            ws.cell(r, 5).number_format = r'#,##0'
+        try:
+            ws.header_footer.left_header = f"&L期間: {start_d:%Y-%m-%d} ～ {end_d:%Y-%m-%d}"
+            ws.header_footer.right_header = f"&R{timezone.localtime().strftime('%Y-%m-%d %H:%M')}"
+        except AttributeError:
+            pass
+
+    def _write_sheet_product(items):
+        ws = wb.create_sheet("Product")
+        ws.append(["Rank", "Buyer", "Brand", "Product", "Sales(¥)", "Qty"])
+        for c in range(1, 6+1):
+            ws.cell(1, c).font = head_font
+            ws.cell(1, c).alignment = align_center
+            ws.cell(1, c).border = thin
+        for i, row in enumerate(items, start=1):
+            ws.append([i, row["buyer"], row["brand"], row["name"], int(row["sales"]), int(row["qty"])])
+            for c in range(1, 6+1):
+                ws.cell(i+1, c).border = thin
+        ws.column_dimensions["A"].width = 6
+        ws.column_dimensions["B"].width = 18
+        ws.column_dimensions["C"].width = 24
+        ws.column_dimensions["D"].width = 40
+        ws.column_dimensions["E"].width = 14
+        ws.column_dimensions["F"].width = 8
+        for r in range(2, len(items)+2):
+            ws.cell(r, 5).number_format = r'¥#,##0'
+            ws.cell(r, 6).number_format = r'#,##0'
+        try:
+            ws.header_footer.left_header = f"&L期間: {start_d:%Y-%m-%d} ～ {end_d:%Y-%m-%d}"
+            ws.header_footer.right_header = f"&R{timezone.localtime().strftime('%Y-%m-%d %H:%M')}"
+        except AttributeError:
+            pass
+
+    # 先頭の空シートを削除してから追加
+    del wb[wb.sheetnames[0]]
+    _write_sheet_buyer(buyer_rank)
+    _write_sheet_brand(brand_rank)
+    _write_sheet_product(product_rank)
+
+    filename = f"rankings_{start_d:%Y%m%d}_{end_d:%Y%m%d}.xlsx"
+    from io import BytesIO
+    bio = BytesIO()
+    wb.save(bio); bio.seek(0)
+    return FileResponse(bio, as_attachment=True, filename=filename)

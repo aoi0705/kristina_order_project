@@ -1,0 +1,264 @@
+{# templates/kseurasia_manage_app/rankings.html #}
+{% extends "kseurasia_manage_app/base_dashboard.html" %}
+{% load extras %}
+
+{% block title %}ランキング | KS Eurasia Console{% endblock %}
+{% block header %}ランキング{% endblock %}
+
+{% block content %}
+
+  <!-- フィルター -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div>絞り込み</div>
+      <div class="muted">期間と対象バイヤーを選んでください</div>
+    </div>
+    <div class="card-body">
+      <form method="get" action="{% url 'ranking_console' %}">
+        <div class="row">
+          <div class="col">
+            <label>開始日</label>
+            <input type="date" name="start_date" value="{{ start_date }}">
+          </div>
+          <div class="col">
+            <label>終了日</label>
+            <input type="date" name="end_date" value="{{ end_date }}">
+          </div>
+          <div class="col">
+            <label>バイヤー</label>
+            <select name="vendor">
+              <option value="all" {% if vendor == "all" %}selected{% endif %}>すべて</option>
+              <option value="ROYAL COSMETICS" {% if vendor == "ROYAL COSMETICS" %}selected{% endif %}>ROYAL COSMETICS</option>
+              <option value="NIPPONIKATRADING" {% if vendor == "NIPPONIKATRADING" %}selected{% endif %}>NIPPONIKATRADING</option>
+              <option value="YAMATO_TOYO" {% if vendor == "YAMATO_TOYO" %}selected{% endif %}>YAMATO/TOYO TRADING</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>表示件数（Excel）</label>
+            <input type="number" min="1" name="limit" value="{{ limit }}">
+          </div>
+          <div class="col">
+            <label>プレビュー件数（バイヤー）</label>
+            <input type="number" min="1" name="preview" value="{{ preview }}">
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn btn-primary" type="submit">適用</button>
+          <a class="btn"
+             href="{% url 'rankings_export' %}?start_date={{ start_date }}&end_date={{ end_date }}&vendor={{ vendor }}&limit={{ limit }}">Excel出力</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# util: クエリ共通部（expand は含めない） #}
+  {% with qs="start_date="|add:start_date|add:"&end_date="|add:end_date|add:"&vendor="|add:vendor|add:"&limit="|add:limit|add:"&preview="|add:preview %}
+
+  <!-- バイヤー別 -->
+  <div class="card" id="buyer" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div>バイヤー別</div><div class="muted">売上降順</div>
+    </div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); width:60px;">順位</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">バイヤー</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:120px;">売上(¥)</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:80px;">数量</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% if expand == "all" or expand == "buyer" %}
+            {% for r in buyer_rank %}
+              <tr>
+                <td style="padding:8px;">{{ forloop.counter }}</td>
+                <td style="padding:8px;">{{ r.key }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="muted" style="padding:8px;">データがありません</td></tr>
+            {% endfor %}
+          {% else %}
+            {% with p=":"|add:preview %}
+              {% for r in buyer_rank|slice:p %}
+                <tr>
+                  <td style="padding:8px;">{{ forloop.counter }}</td>
+                  <td style="padding:8px;">{{ r.key }}</td>
+                  <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                  <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="muted" style="padding:8px;">データがありません</td></tr>
+              {% endfor %}
+            {% endwith %}
+          {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        {% if expand == "all" or expand == "buyer" %}
+          <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}#buyer">折りたたむ</a>
+        {% else %}
+          {% if buyer_rank|length > preview %}
+            <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}&expand=buyer#buyer">すべて見る</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ブランド別（全て見るまで上位10） -->
+  <div class="card" id="brand" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div>ブランド別</div><div class="muted">売上降順</div>
+    </div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); width:60px;">順位</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); width:180px;">バイヤー</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">ブランド</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:120px;">売上(¥)</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:80px;">数量</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% if expand == "all" or expand == "brand" %}
+            {% for r in brand_rank %}
+              <tr>
+                <td style="padding:8px;">{{ forloop.counter }}</td>
+                <td style="padding:8px;">{{ r.buyer }}</td>
+                <td style="padding:8px;">{{ r.brand }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="muted" style="padding:8px;">データがありません</td></tr>
+            {% endfor %}
+          {% else %}
+            {% for r in brand_rank|slice:":10" %}
+              <tr>
+                <td style="padding:8px;">{{ forloop.counter }}</td>
+                <td style="padding:8px;">{{ r.buyer }}</td>
+                <td style="padding:8px;">{{ r.brand }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="muted" style="padding:8px;">データがありません</td></tr>
+            {% endfor %}
+          {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        {% if expand == "all" or expand == "brand" %}
+          <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}#brand">折りたたむ</a>
+        {% else %}
+          {% if brand_rank|length > 10 %}
+            <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}&expand=brand#brand">すべて見る</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 商品別（全て見るまで上位10。商品名リンク＋右端ボタンで詳細へ） -->
+  <div class="card" id="product" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div>商品別</div><div class="muted">売上降順（商品名クリックで詳細）</div>
+    </div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); width:60px;">順位</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); width:180px;">バイヤー</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">ブランド</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">商品名</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:120px;">売上(¥)</th>
+              <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); width:80px;">数量</th>
+              <th style="text-align:center; padding:8px; border-bottom:1px solid var(--border); width:120px;">詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% if expand == "all" or expand == "product" %}
+            {% for r in product_rank %}
+              <tr>
+                <td style="padding:8px;">{{ forloop.counter }}</td>
+                <td style="padding:8px;">{{ r.buyer }}</td>
+                <td style="padding:8px;">{{ r.brand }}</td>
+                <td style="padding:8px;">
+                  {% if r.pk and r.vendor %}
+                    <a href="{% url 'product_detail' r.pk %}?vendor={{ r.vendor }}">{{ r.name }}</a>
+                  {% else %}
+                    {{ r.name }} <span class="muted" style="font-size:12px;">（未登録/一致なし）</span>
+                  {% endif %}
+                </td>
+                <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+                <td style="padding:8px; text-align:center;">
+                  {% if r.pk and r.vendor %}
+                    <a class="btn" href="{% url 'product_detail' r.pk %}?vendor={{ r.vendor }}">商品詳細</a>
+                  {% else %}
+                    <span class="btn" style="opacity:.5; pointer-events:none;">商品詳細</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="muted" style="padding:8px;">データがありません</td></tr>
+            {% endfor %}
+          {% else %}
+            {% for r in product_rank|slice:":10" %}
+              <tr>
+                <td style="padding:8px;">{{ forloop.counter }}</td>
+                <td style="padding:8px;">{{ r.buyer }}</td>
+                <td style="padding:8px;">{{ r.brand }}</td>
+                <td style="padding:8px;">
+                  {% if r.pk and r.vendor %}
+                    <a href="{% url 'product_detail' r.pk %}?vendor={{ r.vendor }}">{{ r.name }}</a>
+                  {% else %}
+                    {{ r.name }} <span class="muted" style="font-size:12px;">（未登録/一致なし）</span>
+                  {% endif %}
+                </td>
+                <td style="padding:8px; text-align:right;">{{ r.sales|intcomma }}</td>
+                <td style="padding:8px; text-align:right;">{{ r.qty|intcomma }}</td>
+                <td style="padding:8px; text-align:center;">
+                  {% if r.pk and r.vendor %}
+                    <a class="btn" href="{% url 'product_detail' r.pk %}?vendor={{ r.vendor }}">商品詳細</a>
+                  {% else %}
+                    <span class="btn" style="opacity:.5; pointer-events:none;">商品詳細</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="muted" style="padding:8px;">データがありません</td></tr>
+            {% endfor %}
+          {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        {% if expand == "all" or expand == "product" %}
+          <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}#product">折りたたむ</a>
+        {% else %}
+          {% if product_rank|length > 10 %}
+            <a class="btn" href="{% url 'ranking_console' %}?{{ qs }}&expand=product#product">すべて見る</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% endwith %}
+{% endblock %}

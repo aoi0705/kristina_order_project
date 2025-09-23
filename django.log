@@ -16956,3 +16956,342 @@ django.db.utils.OperationalError: (1054, "Unknown column 'kseurasia_manage_app_n
 2025-09-23 00:22:44,418 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
 2025-09-23 00:23:10,718 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
 2025-09-23 00:23:30,139 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:06:09,705 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:08:49,841 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:08:50,549 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:25:47,355 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:25:48,167 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:39:14,423 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\urls.py changed, reloading.
+2025-09-23 15:39:15,148 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:39:45,694 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:39:46,440 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:45:21,098 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1037, in find_library
+    return parser.libraries[name]
+KeyError: 'humanize'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4567, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 34, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 143, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 125, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loaders\base.py", line 30, in get_template
+    contents, origin, origin.template_name, self.engine,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 193, in compile_nodelist
+    return parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 278, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1094, in load
+    lib = find_library(parser, name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1041, in find_library
+    name, "\n".join(sorted(parser.libraries)),
+django.template.exceptions.TemplateSyntaxError: 'humanize' is not a registered tag library. Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+dynattrs
+extras
+i18n
+l10n
+log
+static
+tz
+2025-09-23 15:47:17,573 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1037, in find_library
+    return parser.libraries[name]
+KeyError: 'humanize'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4567, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 34, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 143, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 125, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loaders\base.py", line 30, in get_template
+    contents, origin, origin.template_name, self.engine,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 193, in compile_nodelist
+    return parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 278, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1094, in load
+    lib = find_library(parser, name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1041, in find_library
+    name, "\n".join(sorted(parser.libraries)),
+django.template.exceptions.TemplateSyntaxError: 'humanize' is not a registered tag library. Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+dynattrs
+extras
+i18n
+l10n
+log
+static
+tz
+2025-09-23 15:48:07,179 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kristina_project\settings.py changed, reloading.
+2025-09-23 15:48:07,880 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:48:09,823 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kristina_project\settings.py changed, reloading.
+2025-09-23 15:48:10,542 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:51:24,290 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\templatetags\extras.py changed, reloading.
+2025-09-23 15:51:24,960 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:51:39,046 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 170, in render
+    return self._render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 162, in _render
+    return self.nodelist.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 938, in render
+    bit = node.render_annotated(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 905, in render_annotated
+    return self.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 127, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 124, in get_parent
+    return self.find_template(parent, context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 104, in find_template
+    template_name, skip=history,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 129, in find_template
+    raise TemplateDoesNotExist(name, tried=tried)
+django.template.exceptions.TemplateDoesNotExist: base_dashboard.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4567, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 63, in render
+    reraise(exc, self.backend)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: base_dashboard.html
+2025-09-23 15:52:00,861 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 170, in render
+    return self._render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 162, in _render
+    return self.nodelist.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 938, in render
+    bit = node.render_annotated(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 905, in render_annotated
+    return self.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 127, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 124, in get_parent
+    return self.find_template(parent, context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 104, in find_template
+    template_name, skip=history,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 129, in find_template
+    raise TemplateDoesNotExist(name, tried=tried)
+django.template.exceptions.TemplateDoesNotExist: templates/kseurasia_manage_app/base_dashboard.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4567, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 63, in render
+    reraise(exc, self.backend)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: templates/kseurasia_manage_app/base_dashboard.html
+2025-09-23 15:52:10,844 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 170, in render
+    return self._render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 162, in _render
+    return self.nodelist.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 938, in render
+    bit = node.render_annotated(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 905, in render_annotated
+    return self.render(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 127, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 124, in get_parent
+    return self.find_template(parent, context)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 104, in find_template
+    template_name, skip=history,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 129, in find_template
+    raise TemplateDoesNotExist(name, tried=tried)
+django.template.exceptions.TemplateDoesNotExist: base_dashboard.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4567, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 63, in render
+    reraise(exc, self.backend)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: base_dashboard.html
+2025-09-23 15:57:18,538 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:57:19,241 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:57:46,650 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:57:47,437 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:58:03,134 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:58:03,935 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:58:15,436 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 15:58:16,166 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 15:58:46,587 [ERROR] django.request: Internal Server Error: /rankings/
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4583, in ranking_console
+    return render(request, "kseurasia_manage_app/rankings.html", ctx)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\shortcuts.py", line 19, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\backends\django.py", line 34, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 143, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\engine.py", line 125, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loaders\base.py", line 30, in get_template
+    contents, origin, origin.template_name, self.engine,
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 193, in compile_nodelist
+    return parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 278, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\loader_tags.py", line 216, in do_block
+    nodelist = parser.parse(('endblock',))
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1488, in do_with
+    nodelist = parser.parse(('endwith',))
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 478, in parse
+    raise self.error(token, e)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\base.py", line 476, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\template\defaulttags.py", line 1487, in do_with
+    (bits[0], remaining_bits[0]))
+django.template.exceptions.TemplateSyntaxError: 'with' received an invalid token: '=='
+2025-09-23 16:00:59,659 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 16:01:00,399 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 16:01:16,174 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 16:01:16,900 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:06:34,659 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:06:35,493 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:09:17,584 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:09:18,403 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:10:42,276 [ERROR] django.request: Internal Server Error: /api/rankings/export
+Traceback (most recent call last):
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\.venv36\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4702, in rankings_export
+    _write_sheet("Buyer",   buyer_rank,   "Buyer")
+  File "C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py", line 4697, in _write_sheet
+    ws.header_footer.left_header = f"&L期間: {start_d:%Y-%m-%d} ～ {end_d:%Y-%m-%d}"
+AttributeError: 'Worksheet' object has no attribute 'header_footer'
+2025-09-23 17:21:26,522 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:21:27,260 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:26:50,262 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:26:51,023 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:28:18,858 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:28:19,623 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-09-23 17:28:38,455 [INFO] django.utils.autoreload: C:\Users\81904\Downloads\kristina\kristina_project\kseurasia_manage_app\views.py changed, reloading.
+2025-09-23 17:28:39,167 [INFO] django.utils.autoreload: Watching for file changes with StatReloader

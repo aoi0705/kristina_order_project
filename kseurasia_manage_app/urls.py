@@ -34,4 +34,8 @@ urlpatterns = [
     path("products/import/", views.product_import, name="product_import"),
     path("products/", views.product_list, name="product_list"),
     path("products/<int:pk>/", views.product_detail, name="product_detail"),
+
+    #ランキング
+    path("rankings/", views.ranking_console, name="ranking_console"),
+    path("api/rankings/export", views.rankings_export, name="rankings_export"),
 ]
