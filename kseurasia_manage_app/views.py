@@ -1519,6 +1519,11 @@ def import_orders(request):
 
     # --- ROYAL: InvoicePacking_Template.xlsx ---
     if royal_objects:
+
+        brand_net_nw = defaultdict(float)     # S列: tester以外の TTL N/W 合計
+        brand_tester_nw = defaultdict(float)  # T列: tester の TTL N/W 合計
+        brand_pl_weight = defaultdict(float)
+
         sub_total_dict = {
             "INVOICE1": 14,
             "INVOICE2": 14,
@@ -1594,6 +1599,20 @@ def import_orders(request):
                     continue
             # ヘッダーが無い想定：必要なら追加（1行目）
             safe_insert_blank_rows(ws, 14, 1)
+
+            ttl_nw_val = _to_num(getattr(obj, "TTL_nw", None))
+            if not ttl_nw_val:
+                unit_nw = _to_num(getattr(obj, "Unit_nw", None))
+                qty_i   = _to_num(getattr(obj, "Order", None))
+                ttl_nw_val = (unit_nw or 0.0) * (qty_i or 0.0)
+
+            if tester_flg:
+                brand_tester_nw[sheet_name] += ttl_nw_val
+            else:
+                brand_net_nw[sheet_name] += ttl_nw_val
+                # PL（Packing List）側は tester を含めない想定で TTL_weight を合算
+                brand_pl_weight[sheet_name] += _to_num(getattr(obj, "TTL_weight", None))
+
             # 初回だけ、このシートのヘッダー名 → 列番号をキャッシュ
             if invoice not in inv_header_pos:
                 inv_header_pos[invoice] = {}
@@ -1698,6 +1717,23 @@ def import_orders(request):
         for b,t in total_dict.items():
             header_ws.cell(INVOICE_ALIASES[b],8).value = qty_dict[b]
             header_ws.cell(INVOICE_ALIASES[b],9).value = t
+        for alias_name, row_idx in INVOICE_ALIASES.items():
+            s_val = brand_net_nw.get(alias_name, 0.0)
+            t_val = brand_tester_nw.get(alias_name, 0.0)
+            v_val = brand_pl_weight.get(alias_name, 0.0)
+
+            # 数値を書き込み（フォーマットは任意で調整）
+            header_ws.cell(row_idx, 19).value = float(s_val)  # Net w/t product
+            header_ws.cell(row_idx, 20).value = float(t_val)  # tester
+            # TTL は S+T の式にしておく（固定値にするなら value=float(s_val+t_val) でもOK）
+            header_ws.cell(row_idx, 21).value = f"=S{row_idx}+T{row_idx}"
+            header_ws.cell(row_idx, 22).value = float(v_val)  # PL
+
+            # 体裁（必要なら）
+            header_ws.cell(row_idx, 19).number_format = '0.00'
+            header_ws.cell(row_idx, 20).number_format = '0.00'
+            header_ws.cell(row_idx, 21).number_format = '0.00'
+            header_ws.cell(row_idx, 22).number_format = '0.00'
 
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"InvoicePacking_ROYAL_{ts}.xlsx"

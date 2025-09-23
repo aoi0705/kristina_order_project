@@ -108,6 +108,15 @@
   </style>
 </head>
 <body>
+  {% if messages %}
+  <div style="margin:12px 0;">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
     <div id="globalOverlay" class="flex-column" aria-hidden="true">
         <div class="spinner"></div>
         <div class="msg">処理中…</div>
