@@ -7,8 +7,7 @@ __pycache__/
 .venv/
 venv/
 env/
-.venv36/   # ← あなたの環境
-
+.venv36/
 # --- Secrets / Local settings ---
 .env
 .env.* 
@@ -22,7 +21,7 @@ db.sqlite3
 *.db
 
 # --- Django collectstatic / user uploads ---
-staticfiles/     # ← STATIC_ROOT に合わせて
+staticfiles/
 static_root/
 media/
 
