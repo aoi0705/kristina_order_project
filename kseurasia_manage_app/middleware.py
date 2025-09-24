@@ -97,8 +97,7 @@ class SitePassMiddleware:
   {"<div class='err'>パスコードが違います。</div>" if error else ""}
   <form method="post" action="{self.FORM_PATH}?next={next_url}">
     <input type="password" name="passcode" placeholder="パスコード" autofocus required>
-    <button type="submit">入場</button>
+    <button type="submit">ログイン</button>
   </form>
-  <div class="hint">共通パスコードを入力してください。</div>
 </div>"""
         return HttpResponse(html)
