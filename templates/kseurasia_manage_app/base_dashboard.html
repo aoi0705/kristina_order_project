@@ -92,35 +92,27 @@
     .row .col{ flex:1 1 260px; min-width:260px; }
     .hint{ font-size:12px; color:var(--muted); }
 
-    #globalOverlay{
-    position:fixed; inset:0; display:none;
-    background:rgba(255,255,255,.85);
-    z-index:2000; align-items:center; justify-content:center;
+    #loading-overlay {
+      position: fixed; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(255,255,255,.65);
+      z-index: 9999; backdrop-filter: blur(1px);
     }
-    #globalOverlay.show{ display:flex; }
-    #globalOverlay .spinner{
-    width:48px; height:48px; border:6px solid #e5e7eb;
-    border-top-color: var(--primary-600);
-    border-radius:50%; animation:spin 1s linear infinite;
+    #loading-overlay.is-active { display: flex; flex-direction: column; }
+    #loading-overlay .spinner {
+      width: 56px; height: 56px; border: 6px solid rgba(0,0,0,.15);
+      border-top-color: rgba(0,0,0,.6); border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
-    #globalOverlay .msg{ margin-top:12px; font-weight:700; color:#0c4a6e; }
+    #loading-overlay .msg { margin-top: 10px; font-size: 14px; color: #444; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  {% if messages %}
-  <div style="margin:12px 0;">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }}">
-        {{ message }}
-      </div>
-    {% endfor %}
+  <div id="loading-overlay" aria-hidden="true">
+    <div class="spinner"></div>
+    <div class="msg">処理中…</div>
   </div>
-{% endif %}
-    <div id="globalOverlay" class="flex-column" aria-hidden="true">
-        <div class="spinner"></div>
-        <div class="msg">処理中…</div>
-    </div>
   <!-- SIDEBAR -->
   <aside id="sidebar" class="sidebar">
     <div class="brand">

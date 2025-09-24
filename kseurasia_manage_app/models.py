@@ -27,7 +27,7 @@ class OrderContent(models.Model):
     Product_size = models.CharField(max_length=256,null=True)
     Unit_nw = models.CharField(max_length=256,null=True)
     TTL_nw = models.CharField(max_length=256,null=True)
-    Ingredients = models.TextField(null=True,blank=True)
+    Ingredients = models.CharField(max_length=4096,null=True)
 
     #仕入れ関係追加列
     Purchase_price = models.CharField(max_length=256,null=True)
@@ -36,7 +36,7 @@ class OrderContent(models.Model):
     profit_rate = models.CharField(max_length=256,null=True)
 
     #以下ロシア用
-    DS_details = models.CharField(max_length=256,null=True)
+    DS_details = models.CharField(max_length=4096,null=True)
     DS_brandname = models.CharField(max_length=256,null=True)
     DS_Manufacturer = models.CharField(max_length=256,null=True) 
 
@@ -77,7 +77,7 @@ class NIPPONIKATRADING_OrderContent(models.Model):
     商品サイズ = models.CharField(max_length=256,null=True)
     Unit_NW = models.CharField(max_length=256,null=True)
     Total_NW = models.CharField(max_length=256,null=True)
-    成分 = models.TextField(null=True,blank=True)
+    成分 = models.CharField(max_length=4096,null=True)
     Марка_бренд_ДС = models.CharField(max_length=256,null=True)
     Производель_ДС = models.CharField(max_length=256,null=True)
 
@@ -162,7 +162,7 @@ class NIPPONIKATRADING_ProductInfo(models.Model):
     商品サイズ = models.CharField(max_length=256,null=True)
     Unit_NW = models.CharField(max_length=256,null=True)
     Total_NW = models.CharField(max_length=256,null=True)
-    成分 = models.TextField(null=True,blank=True)
+    成分 = models.CharField(max_length=4096,null=True)
     Марка_бренд_ДС = models.CharField(max_length=256,null=True)
     Производель_ДС = models.CharField(max_length=256,null=True)
 
@@ -196,12 +196,12 @@ class RY_ProductInfo(models.Model):
     Product_size = models.CharField(max_length=256,null=True)
     Unit_nw = models.CharField(max_length=256,null=True)
     TTL_nw = models.CharField(max_length=256,null=True)
-    Ingredients = models.TextField(null=True,blank=True)
+    Ingredients = models.CharField(max_length=4096,null=True)
     Purchase_price = models.CharField(max_length=256,null=True)
     Purchase_amount = models.CharField(max_length=256,null=True)
     profit = models.CharField(max_length=256,null=True)
     profit_rate = models.CharField(max_length=256,null=True)
-    DS_details = models.CharField(max_length=256,null=True)
+    DS_details = models.CharField(max_length=4096,null=True)
     DS_brandname = models.CharField(max_length=256,null=True)
     DS_Manufacturer = models.CharField(max_length=256,null=True)
 

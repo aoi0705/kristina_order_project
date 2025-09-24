@@ -29,6 +29,14 @@
   </section>
 
   <script>
+    const overlayEl = document.getElementById('loading-overlay');
+    function showOverlay(msg){
+      if (!overlayEl) return;
+      if (msg) { const m = overlayEl.querySelector('.msg'); if (m) m.textContent = msg; }
+      overlayEl.classList.add('is-active');
+    }
+    function hideOverlay(){ overlayEl?.classList.remove('is-active'); }
+
     // 相互 min/max & 初期値（当月）
     (function initMonthRange(){
       const sm = document.getElementById('start_month');
@@ -67,7 +75,7 @@
       url.searchParams.set("end_month", end);
 
       // 共有オーバーレイを表示
-      if (window.AppOverlay) window.AppOverlay.show("レポートを生成しています…");
+      showOverlay('処理中...'); 
 
       try {
         const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
@@ -86,7 +94,7 @@
         alert('ダウンロードに失敗しました。\n' + e.message);
       } finally {
         btn.disabled = false;
-        if (window.AppOverlay) window.AppOverlay.hide();
+        hideOverlay();
       }
     }
 

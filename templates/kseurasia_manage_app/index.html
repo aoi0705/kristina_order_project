@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}トップ | KS Eurasia{% endblock %}
-{% block header %}トップ（オーダーデータ取り込み）{% endblock %}
+{% block header %}オーダーデータ取り込み{% endblock %}
 
 {% block content %}
   <div class="grid" style="grid-template-columns: 1.4fr .8fr;">
@@ -10,7 +10,7 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <div style="font-weight:700;">Excel取込</div>
+          <div style="font-weight:700;">オーダーシート取込</div>
           <div class="muted" style="font-size:12px;">対応：.xlsx / .xlsm（最大 30MB 程度）</div>
         </div>
       </div>
@@ -40,17 +40,25 @@
   </div>
 
   <script>
-    // 取り込みフォーム送信時に共通オーバーレイを表示
-    (function(){
-      const form = document.querySelector('form[action="/orders/import/"]');
-      if(!form) return;
-      const submitBtn = form.querySelector('button[type="submit"]');
-  
-      form.addEventListener('submit', function(){
-        if (submitBtn) submitBtn.disabled = true;
-        if (window.AppOverlay) window.AppOverlay.show("ファイルを取り込み中です…");
-        // このまま通常のフォームPOST遷移。応答が返るまでオーバーレイが出続けます。
+    const overlayEl = document.getElementById('loading-overlay');
+    function showOverlay(msg){
+      if (!overlayEl) return;
+      if (msg) { const m = overlayEl.querySelector('.msg'); if (m) m.textContent = msg; }
+      overlayEl.classList.add('is-active');
+    }
+    function hideOverlay(){ overlayEl?.classList.remove('is-active'); }
+
+    const form = document.querySelector('form');
+    if (form) {
+    form.addEventListener('submit', function(e){
+      e.preventDefault();               // いったん止める
+      showOverlay('処理中...');        // ここで確実に表示
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          HTMLFormElement.prototype.submit.call(form);  // ネイティブ送信
+        });
       });
-    })();
+    });
+  }
   </script>
 {% endblock %}

@@ -116,16 +116,6 @@
 
       <!-- 下部ツールバー -->
       <div style="display:flex; gap:10px; align-items:center; border-top:1px solid #e5e7eb; padding-top:12px; margin-top:12px;">
-        <div class="muted">選択したバッチに対して実行</div>
-        <form id="form-po" method="post" style="display:inline;">
-          {% csrf_token %}
-          <input type="hidden" name="batch_id" id="po-batch-id">
-          <button type="submit" class="btn btn-primary" disabled>発注書を作成してダウンロード</button>
-        </form>
-        <form id="form-ip" method="post" style="display:inline;">
-          {% csrf_token %}
-          <input type="hidden" name="batch_id" id="ip-batch-id">
-          <button type="submit" class="btn" disabled>インボイス&パッキングを作成してダウンロード</button>
         </form>
 
         <!-- ページング（右寄せ） -->

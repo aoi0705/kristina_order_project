@@ -313,6 +313,7 @@ SALES_TABLE_RC_MAP: Dict[str, str] = {
   'RELENT→\nKS': 'リレント通常注文',
   'CBON→\nセンコン': "C'BON",
   "センコン→\nKS\n(C'BON分）": "C'BON",
+  "UTENA": "UTENA",
 }
 
 AP_BRAND_MAP: Dict[str, str] = {
@@ -369,6 +370,7 @@ AP_BRAND_MAP: Dict[str, str] = {
     "RUHAKU":"RUHAKU",
     "OLUPONO":"OLUPONO",
     "OSATO":"OSATO",
+    "UTENA": "UTENA",
 }
 
 #excelインポート
@@ -495,11 +497,11 @@ BRAND_TO_SHEET_ALIAS: Dict[str, str] = {
     "Hime Labo": "HIMELABO",
     "Lejeu TESTER": "LEJEU", "LEJEU": "LEJEU",
     "HANAKO": "HANAKO", "HANAKO TESTER": "HANAKO",
-    "McCoy": "McCoy", "McCoy PRO": "McCoy", "McCoy mini pouch": "McCoy", "McCoy TESTER": "McCoy", "McCoy PRO TESTER": "McCoy", "McCoy SANPLE": "McCoy",
+    "McCoy": "McCoy", "McCoy PRO": "McCoy", "McCoy mini pouch": "McCoy", "McCoy TESTER": "McCoy", "McCoy PRO TESTER": "McCoy", "McCoy SANPLE": "McCoy","McCoy SAMPLE": "McCoy",
     "MEDION": "Dr.Medion", "MEDION PRO": "Dr.Medion", "MEDION sample": "Dr.Medion", "MEDION TESTER": "Dr.Medion",
     "Diaasjapan ": "Diaas", "Diaasjapan mini sample": "Diaas", "Diaasjapan TESTER": "Diaas",
     "ROSY DROP": "ROSY DROP", "ROSY DROP SAMPLE": "ROSY DROP", "ROSY DROP TESTER": "ROSY DROP",
-    "Relent": "リレント通常注文", "RELENT PRO": "リレント通常注文", "Relent Sample": "リレント無料提供", "Relent TESTER": "リレント無料提供",
+    "Relent": "リレント通常注文", "RELENT PRO": "リレント通常注文", "Relent Sample": "リレント無料提供", "Relent TESTER": "リレント無料提供","Relent SAMPLE": "リレント無料提供",
     "AISHODO": "AISHODO", "AISHODO TESTER": "AISHODO",
     "Ajuste": "Ajuste",
     "Atmore": "ATMORE",
@@ -531,6 +533,7 @@ BRAND_TO_SHEET_ALIAS: Dict[str, str] = {
     "Dime Health Care PRO": "DIME HEALTH CARE",
     "Lishan": "ISTYLE", "Lishan TESTER": "ISTYLE",
     "Tilla Caps": "FAJ",
+    "UTENA": "UTENA",
     #以下YAMATO_TOYO
 
 
@@ -1459,7 +1462,7 @@ def import_orders(request):
     INVOICE4 = ["リレント通常注文","C'BON","Q'1st-1","CHANSON","LAPIDEM"]
     INVOICE5 = ["MARY.P","ROSY DROP","MEROS","B-10","ELEGADOLL","MAYURI","Mediplorer","McCoy","PURE BIO","Glow","ISTYLE"]
 
-    NIPPONIKA_INVOICE = ["リレント通常注文","C'BON","LAPIDEM","B-10","ROSY DROP","BEAUTY GARAGE","MARY.P"]
+    NIPPONIKA_INVOICE = ["リレント通常注文","C'BON","LAPIDEM","B-10","ROSY DROP","BEAUTY GARAGE","MARY.P","FLOUVEIL","リレント通常注文","C'BON","Q'1st-1","HIMELABO","SUNSORIT","ELEGADOLL","MAYURI","ATMORE","DIME HEALTH CARE","ROSY DROP","LAPIDEM","ESTLABO","MEROS","COSMEPRO","AFURA","PECLIA","LEJEU","Dr.Medion","AISHODO","Luxces","McCoy","Esthe Pro Labo","Evliss","PURE BIO","COCOCHI　発注書","BEAUTY GARAGE","DIAMANTE"]
 
     total_dict = {}
     qty_dict = {}
@@ -1717,23 +1720,25 @@ def import_orders(request):
         for b,t in total_dict.items():
             header_ws.cell(INVOICE_ALIASES[b],8).value = qty_dict[b]
             header_ws.cell(INVOICE_ALIASES[b],9).value = t
+            header_ws.cell(INVOICE_ALIASES[b],8).number_format = '0'
+            header_ws.cell(INVOICE_ALIASES[b],9).number_format = '#,##0'
         for alias_name, row_idx in INVOICE_ALIASES.items():
             s_val = brand_net_nw.get(alias_name, 0.0)
             t_val = brand_tester_nw.get(alias_name, 0.0)
             v_val = brand_pl_weight.get(alias_name, 0.0)
 
             # 数値を書き込み（フォーマットは任意で調整）
-            header_ws.cell(row_idx, 19).value = float(s_val)  # Net w/t product
-            header_ws.cell(row_idx, 20).value = float(t_val)  # tester
+            header_ws.cell(row_idx, 11).value = float(s_val)  # Net w/t product
+            header_ws.cell(row_idx, 12).value = float(t_val)  # tester
             # TTL は S+T の式にしておく（固定値にするなら value=float(s_val+t_val) でもOK）
-            header_ws.cell(row_idx, 21).value = f"=S{row_idx}+T{row_idx}"
-            header_ws.cell(row_idx, 22).value = float(v_val)  # PL
+            header_ws.cell(row_idx, 13).value = f"=S{row_idx}+T{row_idx}"
+            header_ws.cell(row_idx, 14).value = float(v_val)  # PL
 
             # 体裁（必要なら）
-            header_ws.cell(row_idx, 19).number_format = '0.00'
-            header_ws.cell(row_idx, 20).number_format = '0.00'
-            header_ws.cell(row_idx, 21).number_format = '0.00'
-            header_ws.cell(row_idx, 22).number_format = '0.00'
+            header_ws.cell(row_idx, 11).number_format = '0.00'
+            header_ws.cell(row_idx, 12).number_format = '0.00'
+            header_ws.cell(row_idx, 13).number_format = '0.00'
+            header_ws.cell(row_idx, 14).number_format = '0.00'
 
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"InvoicePacking_ROYAL_{ts}.xlsx"
@@ -1744,6 +1749,7 @@ def import_orders(request):
         batch.save(update_fields=["InvoicePacking_file"])
 
         #発注書作成
+        purchase_created_files = []
         Purchase_row_dict = {}
         Purchase_qty_dict = {}
         Purchase_buy_dict = {}
@@ -1967,61 +1973,122 @@ def import_orders(request):
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"PURCHASE_ROYAL_{ts}.xlsx"
         Purchase_wb.save(out_path)
-        created_files.append(out_path.name)
+        purchase_created_files.append(out_path.name)
         # バッチに記録（複数あればカンマで保持）
-        batch.PurchaseOrder_file = ", ".join([p for p in created_files if p])
+        batch.PurchaseOrder_file = ", ".join([p for p in purchase_created_files if p])
         batch.save(update_fields=["PurchaseOrder_file"])
 
     # --- NIPPONIKA: InvoicePacking_Nipponika.xlsx ---
     elif nippon_objects:
 
+        # ブランド別集計（ヘッダー追記用）
+        total_amount_by_brand = defaultdict(int)   # 9列 Amount（無償サンプル抜き）
+        total_qty_by_brand    = defaultdict(int)   # 8列 Q'ty（無償サンプル抜き）
+
+        brand_net_nw     = defaultdict(float)      # 19列: tester以外の TTL N/W
+        brand_tester_nw  = defaultdict(float)      # 20列: tester の TTL N/W
+        brand_pl_weight  = defaultdict(float)      # 22列: PL（Gross想定）※testerは含めない
+
         tpl = _template_path("InvoicePacking_Nipponika.xlsx")
         wb = load_workbook(tpl)
 
         for obj in nippon_objects:
-            brand_name = getattr(obj, "Brand_name", "") or ""
+            brand_name   = getattr(obj, "Brand_name", "") or ""
             product_name = getattr(obj, "Description_of_goods", "") or ""
-            if brand_name in BRAND_TO_SHEET_ALIAS:
-                sheet_name = BRAND_TO_SHEET_ALIAS[brand_name]
-            else:
+            if brand_name not in BRAND_TO_SHEET_ALIAS:
                 logger.warning(f"ブランド名の割当が未定義: {brand_name}")
                 continue
+            sheet_alias = BRAND_TO_SHEET_ALIAS[brand_name]
 
-            if sheet_name in NIPPONIKA_INVOICE:
-                ws = wb["Invoice-1 "]
-                ws2 = wb["PL1"]
+            # TESTER 判定
+            tester_flg = False
+            for kw in TESTER_KEYWORDS:
+                if kw in (product_name or "") or kw in (brand_name or ""):
+                    tester_flg = True
+                    break
+
+            # インボイス出力先（通常/テスター）
+            ws = wb["Invoice-2 (TESTER)"] if tester_flg else wb["Invoice-1 "]
+
+            # 明細行を1行挿入して書き込み（ヘッダーは13行目固定）
+            safe_insert_blank_rows(ws, 14, 1)
+            ws.cell(14, 2).value  = getattr(obj, "Description_of_goods", "")
+            ws.cell(14, 3).value  = getattr(obj, "ORDER", "")
+            ws.cell(14, 4).value  = getattr(obj, "Unit_price", "")
+            ws.cell(14, 5).value  = getattr(obj, "Amount", "")
+            ws.cell(14, 6).value  = getattr(obj, "Unit_NW", "")
+            ws.cell(14, 7).value  = getattr(obj, "Total_NW", "")
+            ws.cell(14, 8).value  = getattr(obj, "HS_CODE", "")
+            ws.cell(14, 9).value  = getattr(obj, "Jan_code", "")
+            ws.cell(14,10).value  = getattr(obj, "Артикул", "")
+            for i in range(1, 11):
+                ws.cell(14, i).border = thin_border
+                ws.cell(14, i).font   = invoice_font
+
+            # ▼ TTL N/W（NET重量）の行集計
+            ttl_nw_val = _to_num(getattr(obj, "Total_NW", None))
+            if not ttl_nw_val:
+                unit_nw = _to_num(getattr(obj, "Unit_NW", None))
+                qty_i   = _to_num(getattr(obj, "ORDER", None))
+                ttl_nw_val = (unit_nw or 0.0) * (qty_i or 0.0)
+
+            if tester_flg:
+                brand_tester_nw[sheet_alias] += ttl_nw_val
             else:
-                logger.warning(f"ブランド名の割当が不明 NIPPONIKA配列定義に無し: {brand_name}")
-                continue
+                brand_net_nw[sheet_alias] += ttl_nw_val
 
-            safe_insert_blank_rows(ws,14,1)
-            ws.cell(14,2).value = obj.Description_of_goods
-            ws.cell(14,3).value = obj.ORDER
-            ws.cell(14,4).value = obj.Unit_price
-            ws.cell(14,5).value = obj.Amount
-            ws.cell(14,6).value = obj.Unit_NW
-            ws.cell(14,7).value = obj.Total_NW
-            ws.cell(14,8).value = obj.HS_CODE
-            ws.cell(14,9).value = obj.Jan_code
-            ws.cell(14,10).value = obj.Артикул
-            for i in range(1,11):
-                ws.cell(14,i).border = thin_border
-                ws.cell(14,i).font = invoice_font
+                # ▼ 無償サンプル“抜き”の集計（Q’ty / Amount）… testerは加算しない
+                total_qty_by_brand[sheet_alias]    += _to_int(getattr(obj, "ORDER", 0)) or 0
+                total_amount_by_brand[sheet_alias] += _to_int(getattr(obj, "Amount", 0)) or 0
 
-            safe_insert_blank_rows(ws2,14,1)
-            ws2.cell(14,3).value = obj.ケース重量
-            ws2.cell(14,4).value = obj.ORDER
-            ws2.cell(14,5).value = obj.Description_of_goods
-            ws2.cell(14,6).value = obj.Contents
-            ws2.cell(14,7).value = obj.ケース容積
-            ws2.cell(14,9).value = obj.ケース重量
-            ws2.cell(14,12).value = obj.ケース数量
-            ws2.cell(14,14).value = obj.Unit_price
-            ws2.cell(14,15).value = obj.Amount
-            for i in range(1,21):
-                ws2.cell(14,i).border = thin_border
-                ws2.cell(14,i).font = invoice_font
+            # ▼ PL1 への出力（testerは PL に含めない想定）
+            if not tester_flg:
+                ws2 = wb["PL1"]
+                safe_insert_blank_rows(ws2, 14, 1)
+                ws2.cell(14, 3).value  = getattr(obj, "ケース重量", "")
+                ws2.cell(14, 4).value  = getattr(obj, "ORDER", "")
+                ws2.cell(14, 5).value  = getattr(obj, "Description_of_goods", "")
+                ws2.cell(14, 6).value  = getattr(obj, "Contents", "")
+                ws2.cell(14, 7).value  = getattr(obj, "ケース容積", "")
+                ws2.cell(14, 9).value  = getattr(obj, "ケース重量", "")
+                ws2.cell(14,12).value  = getattr(obj, "ケース数量", "")
+                ws2.cell(14,14).value  = getattr(obj, "Unit_price", "")
+                ws2.cell(14,15).value  = getattr(obj, "Amount", "")
+                for i in range(1, 21):
+                    ws2.cell(14, i).border = thin_border
+                    ws2.cell(14, i).font   = invoice_font
 
+                # ▼ PL（22列）用の総重量: 合計重量があれば優先、無ければ ケース重量×ケース数量
+                gross = _to_num(getattr(obj, "合計重量", None))
+                if gross is None:
+                    cw = _to_num(getattr(obj, "ケース重量", None))
+                    cq = _to_num(getattr(obj, "ケース数量", None))
+                    gross = (cw or 0.0) * (cq or 0.0)
+                brand_pl_weight[sheet_alias] += (gross or 0.0)
+
+        # ▼ ヘッダーシートへ集計を書き込み（行番号は INVOICE_ALIASES を使用）
+        header_ws = wb["INVOICE(without testers)"]
+        for alias, row in INVOICE_ALIASES.items():
+            # 8列 Q’ty / 9列 Amount（ともに tester 抜き）
+            if alias in total_qty_by_brand or alias in total_amount_by_brand:
+                header_ws.cell(row, 8).value = total_qty_by_brand.get(alias, 0)
+                header_ws.cell(row, 9).value = total_amount_by_brand.get(alias, 0)
+                header_ws.cell(row, 8).number_format = '0'
+                header_ws.cell(row, 9).number_format = '#,##0'
+
+            # 19-22列: NET/TESTER/TTL/PL
+            net   = brand_net_nw.get(alias, 0.0)
+            test  = brand_tester_nw.get(alias, 0.0)
+            ttl   = (net or 0.0) + (test or 0.0)
+            pl_w  = brand_pl_weight.get(alias, 0.0)
+            header_ws.cell(row, 19).value = net
+            header_ws.cell(row, 20).value = test
+            header_ws.cell(row, 21).value = ttl
+            header_ws.cell(row, 22).value = pl_w
+            header_ws.cell(row, 19).number_format = '0.00'
+            header_ws.cell(row, 20).number_format = '0.00'
+            header_ws.cell(row, 21).number_format = '0.00'
+            header_ws.cell(row, 22).number_format = '0.00'
 
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"InvoicePacking_Nipponika_{ts}.xlsx"
@@ -2031,7 +2098,7 @@ def import_orders(request):
         batch.save(update_fields=["InvoicePacking_file"])
 
         #発注書作成
-        created_files = []
+        purchase_created_files = []
         Purchase_row_dict = {}
         Purchase_qty_dict = {}
         Purchase_buy_dict = {}
@@ -2256,40 +2323,106 @@ def import_orders(request):
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"PURCHASE_NIPPONIKA_{ts}.xlsx"
         Purchase_wb.save(out_path)
-        created_files.append(out_path.name)
+        purchase_created_files.append(out_path.name)
         # バッチに記録（複数あればカンマで保持）
-        batch.PurchaseOrder_file = ", ".join([p for p in created_files if p])
+        batch.PurchaseOrder_file = ", ".join([p for p in purchase_created_files if p])
         batch.save(update_fields=["PurchaseOrder_file"])
 
     # --- YAMATO: （必要ならテンプレを用意して同様に出力） ---
     if yamato_objects:
         input_wb = openpyxl.load_workbook(io.BytesIO(raw.getvalue()), data_only=False)
-        input_ws = input_wb[sheet_name] if (isinstance(sheet_name, str) and sheet_name in input_wb.sheetnames) else input_wb.active
+        input_ws = (
+            input_wb[sheet_name]
+            if (isinstance(sheet_name, str) and sheet_name in input_wb.sheetnames)
+            else input_wb.active
+        )
 
-        product_info_count = YAMATO_TOYO_ProductInfo.objects.count()
-        for row in range(21,product_info_count+21):
-            if input_ws.cell(row,5).value is None:
+        def _norm_name(s: str) -> str:
+            s = str(s or "").strip()
+            # NBSP / 全角空白 を半角に、連続空白を1つに
+            s = s.replace("\u00A0", " ").replace("\u3000", " ")
+            while "  " in s:
+                s = s.replace("  ", " ")
+            return s
+
+        def _find_yamato_product(name: str):
+            nm = _norm_name(name)
+            if not nm:
+                return None
+            # 完全一致→正規化一致→部分一致 の順で検索
+            prod = YAMATO_TOYO_ProductInfo.objects.filter(Item_Name__iexact=nm).first()
+            if prod:
+                return prod
+            prod = YAMATO_TOYO_ProductInfo.objects.filter(Item_Name__iexact=_norm_name(name)).first()
+            if prod:
+                return prod
+            return YAMATO_TOYO_ProductInfo.objects.filter(Item_Name__icontains=nm).first()
+
+        def _as_int(v):
+            try:
+                return int(str(v).replace(",", "").strip())
+            except Exception:
+                return 0
+
+        not_found = []
+
+        # ※ 以前は「マスタ件数」に依存していましたが、Excel 側の実データ行に沿って走査します
+        row = 21
+        max_empty = 0
+        while row <= input_ws.max_row:
+            name_cell = input_ws.cell(row, 4).value  # D列: Item_Name
+            qty_cell  = input_ws.cell(row, 5).value  # E列: Quantity
+            name = _norm_name(name_cell)
+            qty  = _as_int(qty_cell)
+
+            # 名称も数量も空なら「空行カウント」を増やして抜ける条件に
+            if not name and qty == 0:
+                max_empty += 1
+                if max_empty >= 3:   # 空行が続けば終了
+                    break
+                row += 1
                 continue
-            product_name = input_ws.cell(row,4).value if input_ws.cell(row,4).value else ""
-            order_quantity = int(input_ws.cell(row,5).value) if input_ws.cell(row,5).value else 0
-            if order_quantity <= 0:
+            max_empty = 0  # 実データ行に来たのでリセット
+
+            # 数量が0以下はスキップ
+            if qty <= 0:
+                row += 1
                 continue
-            obj = get_object_or_404(YAMATO_TOYO_ProductInfo, Item_Name__iexact=product_name)
-            if not obj:
-                logger.warning(f"商品マスタに存在しない商品: {product_name}")
+
+            prod = _find_yamato_product(name)
+            if not prod:
+                not_found.append(name or f"(row {row})")
+                row += 1
                 continue
-            sell_price = obj.販売価格 if obj.販売価格 else 0
-            purchase_price = obj.Unit_price_JPY if obj.Unit_price_JPY else 0
-            total_sell_price = order_quantity * sell_price
-            total_purchase_price = order_quantity * purchase_price
-            input_ws.cell(row,7).value = total_purchase_price
-            input_ws.cell(row,9).value = total_sell_price
-            input_ws.cell(row,10).value = total_sell_price - total_purchase_price
-            input_ws.cell(row,11).value = (total_sell_price - total_purchase_price) / total_sell_price
-            input_ws.cell(row,7).number_format = r'¥#,##0'
-            input_ws.cell(row,9).number_format = r'¥#,##0'
-            input_ws.cell(row,10).number_format = r'¥#,##0'
-            input_ws.cell(row,11).number_format = '0.00%'
+
+            # 価格は文字列想定なので数値化
+            sell_price     = _as_int(getattr(prod, "販売価格", 0))
+            purchase_price = _as_int(getattr(prod, "Unit_price_JPY", 0))
+
+            total_sell_price     = qty * sell_price
+            total_purchase_price = qty * purchase_price
+            profit = total_sell_price - total_purchase_price
+            margin = (profit / total_sell_price) if total_sell_price else 0.0
+
+            # G, I, J, K 列へ出力（既存の列指定を踏襲）
+            input_ws.cell(row, 7).value = int(total_purchase_price)  # G
+            input_ws.cell(row, 9).value = int(total_sell_price)      # I
+            input_ws.cell(row,10).value = int(profit)                # J
+            input_ws.cell(row,11).value = float(margin)              # K
+
+            input_ws.cell(row, 7).number_format  = r"¥#,##0"
+            input_ws.cell(row, 9).number_format  = r"¥#,##0"
+            input_ws.cell(row,10).number_format = r"¥#,##0"
+            input_ws.cell(row,11).number_format = "0.00%"
+
+            row += 1
+
+        if not_found:
+            logger.warning(f"YAMATO: 商品マスタ未一致 {len(not_found)} 件（例）: {not_found[:5]}")
+            messages.warning(
+                request,
+                f"YAMATO: 商品マスタ未一致が {len(not_found)} 件ありました。例: {', '.join(not_found[:5])}"
+            )
 
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         out_path = out_dir / f"PURCHASE_YAMATO_{ts}.xlsx"
@@ -2298,7 +2431,6 @@ def import_orders(request):
         # バッチに記録（複数あればカンマで保持）
         batch.PurchaseOrder_file = ", ".join([p for p in created_files if p])
         batch.save(update_fields=["PurchaseOrder_file"])
-
 
     messages.success(request, "取り込みと帳票の下書き作成が完了しました。")
     return redirect("import_batch_list")
@@ -2937,6 +3069,23 @@ def reports_sales_export(request):
             ws.cell(row3+1, col_count+4).number_format = '0.00%'
             ws.cell(row3+1, col_count+4).border = thin_border
 
+    col_total_rc = col_count + 4  # 最右の合計列（既存ロジックに合わせる）
+    # purchase_row / sell_row / profit_row は直前のループで増分されているので退避して使う
+    # 仕入（税抜）は 3行目から2行おき（上段のみ）／ 売上は 97行目から1行おき
+    total_purchase_rc = 0
+    for r in range(3, purchase_row, 2):  # 税抜の行だけ
+        total_purchase_rc += parse_money_to_int(ws.cell(r, col_total_rc).value) or 0
+
+    total_sell_rc = 0
+    for r in range(97, sell_row):        # 売上行
+        total_sell_rc += parse_money_to_int(ws.cell(r, col_total_rc).value) or 0
+
+    profit_rc = total_sell_rc - total_purchase_rc
+    ws.cell(227, 4).value = int(profit_rc)
+    ws.cell(227, 4).number_format = r'¥#,##0'
+    ws.cell(228, 4).value = float((profit_rc / total_sell_rc) if total_sell_rc else 0.0)
+    ws.cell(228, 4).number_format = '0.00%'
+
     #NIPPONIKA
     rows = list(
         orders_between_by_batch_created("NIPPONIKA",start_dt, end_dt)
@@ -3065,6 +3214,21 @@ def reports_sales_export(request):
             ws.cell(row3+1, col_count+4).number_format = '0.00%'
             ws.cell(row3+1, col_count+4).border = thin_border
 
+    col_total_np = col_count + 4  # 合計列
+    total_purchase_np = 0
+    for r in range(3, purchase_row, 2):  # 税抜の行だけ
+        total_purchase_np += parse_money_to_int(ws.cell(r, col_total_np).value) or 0
+
+    total_sell_np = 0
+    for r in range(97, sell_row):        # 売上行
+        total_sell_np += parse_money_to_int(ws.cell(r, col_total_np).value) or 0
+
+    profit_np = total_sell_np - total_purchase_np
+    ws.cell(227, 4).value = int(profit_np)
+    ws.cell(227, 4).number_format = r'¥#,##0'
+    ws.cell(228, 4).value = float((profit_np / total_sell_np) if total_sell_np else 0.0)
+    ws.cell(228, 4).number_format = '0.00%'
+
     #YAMATO/TOYO
     rows = list(
         orders_between_by_batch_created("YAMATO_TOYO",start_dt, end_dt)
@@ -3109,7 +3273,7 @@ def reports_sales_export(request):
 
         p_total = 0
         s_total = 0
-        for YAMATO_row in range(3,43,2):
+        for YAMATO_row in range(3,4,2):
             brand_key = ws.cell(YAMATO_row,2).value
             purchase_total = int(val.get(brand_key,0))
             sell_total = int(sales_sell_dict.get(key,{}).get(brand_key,0))
@@ -3124,12 +3288,12 @@ def reports_sales_export(request):
             ws.cell(YAMATO_row+1,4).font = yamato_font
 
             p_total += purchase_total
-        ws.cell(43,4).value = int(p_total)
-        ws.cell(43,4).number_format = r'¥#,##0'
-        ws.cell(43,4).border = thin_border
-        ws.cell(43,4).font = yamato_font
+        ws.cell(5,4).value = int(p_total * 1.1)
+        ws.cell(5,4).number_format = r'¥#,##0'
+        ws.cell(5,4).border = thin_border
+        ws.cell(5,4).font = yamato_font
 
-        for YAMATO_row in range(44,63):
+        for YAMATO_row in range(6,7):
             brand_key = ws.cell(YAMATO_row,2).value
             purchase_total = int(val.get(brand_key,0))
             sell_total = int(sales_sell_dict.get(key,{}).get(brand_key,0))
@@ -3140,35 +3304,44 @@ def reports_sales_export(request):
             ws.cell(YAMATO_row,4).font = yamato_font
 
             s_total += sell_total
-        ws.cell(63,4).value = int(s_total)
-        ws.cell(63,4).number_format = r'¥#,##0'
-        ws.cell(63,4).border = thin_border
-        ws.cell(63,4).font = yamato_font
+        ws.cell(7,4).value = int(s_total)
+        ws.cell(7,4).number_format = r'¥#,##0'
+        ws.cell(7,4).border = thin_border
+        ws.cell(7,4).font = yamato_font
 
-        ws.cell(64,4).value = int(s_total - p_total)
-        ws.cell(64,4).number_format = r'¥#,##0'
-        ws.cell(64,4).border = thin_border
-        ws.cell(64,4).font = yamato_font
-        ws.cell(65,4).value = float((s_total - p_total) / s_total if s_total else 0.0)
-        ws.cell(65,4).number_format = '0.00%'
-        ws.cell(65,4).border = thin_border
-        ws.cell(64,4).font = yamato_font
+        ws.cell(8,4).value = int(s_total - p_total)
+        ws.cell(8,4).number_format = r'¥#,##0'
+        ws.cell(8,4).border = thin_border
+        ws.cell(8,4).font = yamato_font
+        ws.cell(9,4).value = float((s_total - p_total) / s_total if s_total else 0.0)
+        ws.cell(9,4).number_format = '0.00%'
+        ws.cell(9,4).border = thin_border
+        ws.cell(9,4).font = yamato_font
 
-        ws.cell(70,4).value = int(s_total)
-        ws.cell(70,4).number_format = r'¥#,##0'
-        ws.cell(70,4).border = thin_border
-        ws.cell(70,4).font = yamato_font
+        ws.cell(14,4).value = int(s_total)
+        ws.cell(14,4).number_format = r'¥#,##0'
+        ws.cell(14,4).border = thin_border
+        ws.cell(15,4).border = thin_border
+        ws.cell(14,4).font = yamato_font
+
+        dt = datetime.strptime(key, "%Y/%m/%d")              # key は "YYYY/MM/DD"
+        due_dt = (dt + relativedelta(months=+2)).replace(day=22)
+
+        ws.cell(16, 4).value = due_dt.date()                               # dateでOK（datetimeでも可）
+        ws.cell(16, 4).number_format = "yyyy/mm/dd"
+        ws.cell(16, 4).border = thin_border
+        ws.cell(16, 4).font = yamato_font
 
     col_count = len(sales_purchase_dict.keys())
     for col in range(3, 4 + col_count):
-        for row in range(3,42):
+        for row in range(3,5):
             total_purchase = parse_money_to_int(ws.cell(row, col_count+4).value) or 0
             total_purchase += parse_money_to_int(ws.cell(row, col).value) or 0
             ws.cell(row, col_count+4).value = total_purchase
             ws.cell(row, col_count+4).number_format = r'¥#,##0'
             ws.cell(row, col_count+4).border = thin_border
             ws.cell(row, col_count+4).font = yamato_font
-        for row2 in range(44,62):
+        for row2 in range(6,7):
             total_sell = parse_money_to_int(ws.cell(row2, col_count+4).value) or 0
             total_sell += parse_money_to_int(ws.cell(row2, col).value) or 0
             ws.cell(row2, col_count+4).value = total_sell
@@ -3200,6 +3373,8 @@ def reports_ar_export(request):
 
     start_dt, end_dt, fmt, label = _get_report_params_range(request)
     tz = timezone.get_current_timezone()
+    orig_start_dt = start_dt
+    orig_end_dt   = end_dt
     start_dt = timezone.make_aware(datetime(1970, 1, 1, 0, 0, 0), tz)
     end_dt   = timezone.make_aware(datetime(2100, 1, 1, 0, 0, 0), tz)
 
@@ -3438,26 +3613,42 @@ def reports_ar_export(request):
 
         # === YAMATO_TOYO ===
         sell_total = YAMATO_sales_sell_dict.get(month, {}).get("YAMATO", 0)
+
+        # 当月売上高
         ws.cell(8,5).value = int(sell_total)
         ws.cell(8,5).number_format = r'¥#,##0'
         ws.cell(8,5).border = thin_border
         ws.cell(8,5).alignment = Alignment(horizontal="center", vertical="center")
         ws.cell(8,5).font = ar_font
-        ws.cell(8,6).value = int(sell_total) / 2
+
+        # 入金①（当月）は 0：翌々月一括払いに統一
+        ws.cell(8,6).value = 0
         ws.cell(8,6).number_format = r'¥#,##0'
         ws.cell(8,6).border = thin_border
         ws.cell(8,6).alignment = Alignment(horizontal="center", vertical="center")
         ws.cell(8,6).font = ar_font
+
+        # 当月に到来した過去分（入金②）
         if month in YAMATO_pay_dict:
             ws.cell(8,7).value = int(YAMATO_pay_dict[month])
             ws.cell(8,7).number_format = r'¥#,##0'
             ws.cell(8,7).border = thin_border
             ws.cell(8,7).alignment = Alignment(horizontal="center", vertical="center")
             ws.cell(8,7).font = ar_font
-        # ★ 同様に3ヶ月後キーを関数外で直接計算
-        base_dt = datetime.strptime(month, "%Y/%m")              # ★
-        pay_month_plus4 = (base_dt.replace(day=1) + relativedelta(months=+4)).strftime("%Y/%m")  # ★
-        YAMATO_pay_dict[pay_month_plus4] += (sell_total / 2)     # ★
+
+        # 100%を「翌々月」に到来させる（※日付は月集計のため保持しない）
+        base_dt = datetime.strptime(month, "%Y/%m")
+        pay_month_plus2 = (base_dt.replace(day=1) + relativedelta(months=+2)).strftime("%Y/%m")
+        YAMATO_pay_dict[pay_month_plus2] += int(sell_total)
+
+        # 入金合計（入金① + 当月到来分②）…当月①は0なので②のみ
+        ws.cell(8,10).value = int(YAMATO_pay_dict.get(month, 0))
+        ws.cell(8,10).number_format = r'¥#,##0'
+        ws.cell(8,10).border = thin_border
+        ws.cell(8,10).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(8,10).font = ar_font
+
+        # 残高（以降に到来予定の累計）
         balance = 0
         for key, val in YAMATO_pay_dict.items():
             if key >= month:
@@ -3481,6 +3672,18 @@ def reports_ar_export(request):
             ws.cell(16, col).alignment = Alignment(horizontal="center", vertical="center")
             ws.cell(16, col).font = ar_font
 
+    def _ym(dt):
+        # awareならローカルタイムに寄せてからフォーマット
+        return timezone.localtime(dt, tz).strftime("%Y.%m") if timezone.is_aware(dt) else dt.strftime("%Y.%m")
+
+    def _safe_title(name: str) -> str:
+        name = re.sub(r'[:\\\\/*?\\[\\]]', '-', name)  # 禁止文字をハイフンに
+        return name[:31]  # 31文字制限
+
+    new_title = _safe_title(f"{_ym(orig_start_dt)}_{_ym(orig_end_dt)}")
+
+    ws.title = new_title
+
     # --- 保存 & 返却 ---
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = TEMP_PATH / f"AR_{label}_{ts}.xlsx"
@@ -3497,6 +3700,8 @@ def reports_ap_export(request):
 
     start_dt, end_dt, fmt, label = _get_report_params_range(request)
     tz = timezone.get_current_timezone()
+    orig_start_dt = start_dt
+    orig_end_dt   = end_dt
     start_dt = timezone.make_aware(datetime(1970, 1, 1, 0, 0, 0), tz)
     end_dt   = timezone.make_aware(datetime(2100, 1, 1, 0, 0, 0), tz)
 
@@ -3740,6 +3945,17 @@ def reports_ap_export(request):
     ws.cell(66,5).number_format = r'¥#,##0'
     ws.cell(66,5).border = thin_border
 
+    def _ym(dt):
+        # awareならローカルタイムに寄せてからフォーマット
+        return timezone.localtime(dt, tz).strftime("%Y.%m") if timezone.is_aware(dt) else dt.strftime("%Y.%m")
+
+    def _safe_title(name: str) -> str:
+        name = re.sub(r'[:\\\\/*?\\[\\]]', '-', name)  # 禁止文字をハイフンに
+        return name[:31]  # 31文字制限
+
+    new_title = _safe_title(f"{_ym(orig_start_dt)}_{_ym(orig_end_dt)}")
+    ws.title = new_title
+
     # --- 保存 & 返却 ---
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = TEMP_PATH / f"AP_{label}_{ts}.xlsx"
@@ -3823,7 +4039,7 @@ def reports_cashflow_export(request):
     buyers_month_offset = {
         "ROYAL COSMETICS": 3,
         "NIPPONIKATRADING": 3,
-        "YAMATO_TOYO": 4,
+        "YAMATO_TOYO": 2,
     }
     scheduled_in = defaultdict(lambda: defaultdict(int)) 
 
@@ -3878,14 +4094,20 @@ def reports_cashflow_export(request):
                     sales_i = 0
 
             if sales_i:
-                half_now = sales_i // 2                # 奇数円は後払い側へ寄せる
-                half_later = sales_i - half_now
-                # 当月入金
-                scheduled_in[ym_key][buyer_code] += half_now
-                # オフセット後入金
-                off = buyers_month_offset.get(buyer_code, 0)
-                pay_month = ym_key + relativedelta(months=+off)
-                scheduled_in[pay_month][buyer_code] += half_later
+                if buyer_code == "YAMATO_TOYO":
+                    now = sales_i                  # 全額を翌々月に
+                    later = 0
+                    pay_month = ym_key + relativedelta(months=+2)
+                    scheduled_in[pay_month][buyer_code] += now
+                else:
+                    half_now = sales_i // 2                # 奇数円は後払い側へ寄せる
+                    half_later = sales_i - half_now
+                    # 当月入金
+                    scheduled_in[ym_key][buyer_code] += half_now
+                    # オフセット後入金
+                    off = buyers_month_offset.get(buyer_code, 0)
+                    pay_month = ym_key + relativedelta(months=+off)
+                    scheduled_in[pay_month][buyer_code] += half_later
 
     fold(RC_rows,        "Purchase_amount", "ROYAL COSMETICS")
     fold(nipponika_rows, "仕入値合計",       "NIPPONIKATRADING")
@@ -4253,9 +4475,13 @@ def product_import(request):
                 continue
             data["Brand"] = "UTENA"
 
-        g_hex = _cell_bg_hex6(ws.cell(row=r, column=7))  # G列
-        if g_hex and g_hex == REQ_HEX:
+        #g_hex = _cell_bg_hex6(ws.cell(row=r, column=7))  # G列
+        cell = ws.cell(row=r, column=7)
+        g_hex = cell.fill.fgColor.theme
+        logger.info(f"Row {r} Col7 BG: {g_hex}")
+        if g_hex and g_hex == 5:
             data["RequiredProduct_flg"] = True
+            logger.info(f"Row {r} Col7 BG: {g_hex} → RequiredProduct_flg=TRUE")
 
         if vendor == "NIPPONIKATRADING社向け":
             objects.append(NIPPONIKATRADING_ProductInfo(**data))

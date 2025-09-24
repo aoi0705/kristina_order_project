@@ -66,15 +66,25 @@
 
   <script>
     // 取り込み送信時に共通オーバーレイを表示
-    (function(){
-      const form = document.querySelector('form[enctype="multipart/form-data"]');
-      if(!form) return;
-      const btn = document.getElementById('productImportBtn');
-      form.addEventListener('submit', function(){
-        if (btn) btn.disabled = true;
-        if (window.AppOverlay) window.AppOverlay.show("商品データを取り込み中です…");
-        // 通常のフォームPOSTで遷移。応答が返るまでオーバーレイは表示されたまま。
+    const overlayEl = document.getElementById('loading-overlay');
+    function showOverlay(msg){
+      if (!overlayEl) return;
+      if (msg) { const m = overlayEl.querySelector('.msg'); if (m) m.textContent = msg; }
+      overlayEl.classList.add('is-active');
+    }
+    function hideOverlay(){ overlayEl?.classList.remove('is-active'); }
+
+    const form = document.querySelector('form');
+    if (form) {
+    form.addEventListener('submit', function(e){
+      e.preventDefault();               // いったん止める
+      showOverlay('処理中...');        // ここで確実に表示
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          HTMLFormElement.prototype.submit.call(form);  // ネイティブ送信
+        });
       });
-    })();
+    });
+  }
   </script>
 {% endblock %}
