@@ -41,7 +41,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "kseurasia_manage_app.middleware.BasicAuthMiddleware",
+    "kseurasia_manage_app.middleware.SitePassMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -155,13 +155,13 @@ LOGGING = {
 }
 
 import os
-
-BASIC_AUTH_ENABLED = True  # 本番だけ有効（開発中は無効）
-BASIC_AUTH_USERNAME = os.getenv("BASIC_AUTH_USER", "kseurasia_@dm1n")
-BASIC_AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASS", "@dm1n_P@ssw0rd")
-BASIC_AUTH_PATH_ALLOWLIST = [
+SITE_GATE_ENABLED = True  # 本番で有効。開発では False でもOK
+SITE_GATE_PASSWORD = os.getenv("SITE_GATE_PASSWORD", "kseurasi@_@dm1n")  # 共通パス
+SITE_GATE_MAX_AGE = 60 * 60 * 12  # 12時間（お好みで）
+SITE_GATE_ALLOWLIST = [
     r"^/static/",
     r"^/favicon\.ico$",
-    # 例: 管理画面ログインだけ素通りしたいなら ↓ を追加
-    # r"^/admin/login/",
+    r"^/healthz$",
+    r"^/_gate$",
+    r"^/_gate/logout$",
 ]
