@@ -165,3 +165,10 @@ SITE_GATE_ALLOWLIST = [
     r"^/_gate$",
     r"^/_gate/logout$",
 ]
+
+# 反映必須（HTTPS終端がNginx/ALBなどプロキシの場合）
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# クッキーまわり
+SESSION_COOKIE_SECURE = True    # HTTPSのみで送る
+CSRF_COOKIE_SECURE    = True

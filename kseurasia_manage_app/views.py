@@ -4295,6 +4295,8 @@ VENDOR_CONFIG = {
 VENDOR_CHOICES = [(k, v["label"]) for k, v in VENDOR_CONFIG.items()]
 LABEL_MAP = {k: v["label"] for k, v in VENDOR_CONFIG.items()}
 
+REVERSE_LABEL_MAP = {v: k for k, v in LABEL_MAP.items()}
+
 def _resolve_vendor(request):
     v = request.GET.get("vendor") or request.POST.get("vendor") or "nipponikatrading"
     return v if v in VENDOR_CONFIG else "nipponikatrading"
@@ -4511,7 +4513,9 @@ def product_import(request):
         return render(request, "kseurasia_manage_app/product_import.html", {"form": ProductImportForm()})
 
     messages.success(request, f"取り込み完了: 旧データ {deleted} 件削除、新規 {len(objects)} 件登録しました。")
-    return redirect("product_list")
+    vendor_key = REVERSE_LABEL_MAP.get(vendor, "nipponikatrading")
+    from django.urls import reverse  # 既にインポート済みなら不要
+    return redirect(f"{reverse('product_list')}?vendor={vendor_key}")
 
 def product_list(request):
     vendor = _resolve_vendor(request)
