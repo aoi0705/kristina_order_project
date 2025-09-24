@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "kseurasia_manage_app.middleware.BasicAuthMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -152,3 +153,15 @@ LOGGING = {
     },
     "root": {"handlers": ["console", "file"], "level": "INFO"},
 }
+
+import os
+
+BASIC_AUTH_ENABLED = True  # 本番だけ有効（開発中は無効）
+BASIC_AUTH_USERNAME = os.getenv("BASIC_AUTH_USER", "kseurasia_@dm1n")
+BASIC_AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASS", "@dm1n_P@ssw0rd")
+BASIC_AUTH_PATH_ALLOWLIST = [
+    r"^/static/",
+    r"^/favicon\.ico$",
+    # 例: 管理画面ログインだけ素通りしたいなら ↓ を追加
+    # r"^/admin/login/",
+]
